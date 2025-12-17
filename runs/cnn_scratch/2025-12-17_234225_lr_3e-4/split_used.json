@@ -1,0 +1,1371 @@
+{
+  "repo_root": "/Users/timschafer/Documents/Masterstudium/2. Semester/Ku\u0308nstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn",
+  "root_all": "data/patches/all",
+  "classes": [
+    "no_qr",
+    "qr"
+  ],
+  "class_to_idx": {
+    "no_qr": 0,
+    "qr": 1
+  },
+  "seed": 42,
+  "fractions": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "splits": {
+    "train": [
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__194__cx300_cy2361__s0.4094__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__213__cx2563_cy1535__s0.3795__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__171__cx1898_cy486__s0.4128__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__031__cx1777_cy1777__s0.5175__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__214__cx446_cy305__s0.4072__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__168__cx2845_cy2301__s0.4669__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__237__cx2281_cy2885__s0.4420__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__178__cx1011_cy2119__s0.4881__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__215__cx2744_cy1232__s0.4072__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__164__cx2684_cy1232__s0.4145__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__180__cx1736_cy1777__s0.4112__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__200__cx1998_cy2744__s0.4083__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__036__cx83_cy1696__s0.5110__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__034__cx179_cy1635__s0.5146__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__011__cx648_cy1857__s0.5522__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__100__cx1051_cy2079__s0.5302__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__169__cx224_cy2281__s0.4129__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__191__cx2805_cy1273__s0.4098__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__123__cx1998_cy1716__s0.5080__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__181__cx2764_cy2341__s0.4598__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__185__cx2785_cy2361__s0.4574__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__121__cx2926_cy1756__s0.4933__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__238__cx1414_cy2583__s0.4756__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__127__cx2160_cy244__s0.4234__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__162__cx2785_cy2139__s0.4147__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__116__cx3309_cy507__s0.4259__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__091__cx83_cy2281__s0.4405__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__193__cx2744_cy1857__s0.4096__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__134__cx2926_cy1797__s0.4857__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__216__cx2523_cy869__s0.4070__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__013__cx648_cy1918__s0.5450__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__138__cx2502_cy1535__s0.4202__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__208__cx910_cy2059__s0.4699__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__127__cx1031_cy2019__s0.5163__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__236__cx2099_cy2986__s0.4423__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__229__cx1373_cy2684__s0.4787__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__035__cx1656_cy2180__s0.5634__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__177__cx2563_cy950__s0.4115__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__144__cx708_cy159__s0.4186__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__097__cx2966_cy1756__s0.5044__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__175__cx1777_cy2744__s0.4120__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__131__cx3369_cy446__s0.4220__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__113__cx2079_cy1716__s0.5127__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8580__003__cx1051_cy179__s0.6030__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__159__cx567_cy2301__s0.4150__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__095__cx2845_cy2402__s0.4379__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__173__cx3430_cy406__s0.4123__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__023__cx627_cy1837__s0.5314__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__207__cx990_cy2099__s0.4699__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__219__cx1817_cy2361__s0.4062__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__029__cx1031_cy2099__s0.5667__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__096__cx3349_cy466__s0.4373__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__151__cx869_cy2422__s0.4170__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__067__cx1635_cy2160__s0.5487__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__139__cx2684_cy2341__s0.4833__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__024__cx2946_cy1777__s0.5572__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__070__cx58_cy1676__s0.4557__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__167__cx2643_cy1212__s0.4134__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__186__cx1353_cy2825__s0.4887__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__249__cx3188_cy1535__s0.4031__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__201__cx98_cy2260__s0.4082__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__242__cx3450_cy139__s0.4040__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__029__cx668_cy1736__s0.5216__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__203__cx1011_cy2321__s0.4080__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__122__cx2744_cy1091__s0.4249__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__198__cx1857_cy2744__s0.4087__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__139__cx2139_cy1615__s0.5023__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__110__cx224_cy239__s0.4304__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__187__cx2139_cy2906__s0.4604__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__117__cx466_cy2321__s0.4257__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__237__cx2643_cy1777__s0.3720__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__124__cx2119_cy2664__s0.4240__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__020__cx2099_cy1635__s0.5714__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__233__cx2563_cy990__s0.4049__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__237__cx2764_cy950__s0.4046__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__247__cx1575_cy2623__s0.4031__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__188__cx3248_cy627__s0.4103__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__160__cx2805_cy2260__s0.4727__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__182__cx123_cy2543__s0.4110__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__189__cx2724_cy2260__s0.4538__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__120__cx2200_cy1756__s0.5108__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__212__cx1535_cy1716__s0.4073__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__215__cx2321_cy2986__s0.4503__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__119__cx123_cy2260__s0.4255__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__119__cx2442_cy1696__s0.4051__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__209__cx1595_cy2361__s0.4073__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__154__cx2422_cy2381__s0.4163__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__129__cx688_cy2603__s0.4224__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__238__cx2482_cy1736__s0.3719__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__238__cx1756_cy2381__s0.4046__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__248__cx2623_cy265__s0.4031__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__107__cx1898_cy139__s0.4308__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__147__cx1454_cy2603__s0.4176__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__125__cx2402_cy2825__s0.4863__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__234__cx607_cy2623__s0.4048__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__181__cx2744_cy1898__s0.4112__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__225__cx3369_cy406__s0.4056__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__019__cx123_cy1716__s0.5338__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__113__cx2805_cy1152__s0.4301__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__187__cx708_cy2301__s0.4105__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__050__cx684_cy1813__s0.4726__win151.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__183__cx2764_cy2301__s0.4583__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__104__cx2724_cy1273__s0.4326__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__098__cx2523_cy1958__s0.5311__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__164__cx1394_cy2664__s0.4950__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__027__cx789_cy1837__s0.5247__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__192__cx3147_cy1595__s0.4097__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__223__cx2180_cy1777__s0.4796__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__188__cx2664_cy2321__s0.4549__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__208__cx1857_cy486__s0.4073__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__224__cx1131_cy2986__s0.4792__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__222__cx890_cy2664__s0.4061__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__113__cx2684_cy1837__s0.4057__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__063__cx1011_cy2079__s0.5493__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__123__cx199_cy2482__s0.4243__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__181__cx1394_cy2764__s0.4916__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__105__cx1373_cy2805__s0.5157__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__025__cx63_cy1736__s0.5279__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__209__cx1333_cy2885__s0.4830__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__186__cx2482_cy1958__s0.4807__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__166__cx2885_cy2442__s0.4139__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__189__cx2825_cy2341__s0.4099__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__176__cx204_cy466__s0.4118__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__056__cx1273_cy1756__s0.4707__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__172__cx950_cy2039__s0.4922__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__184__cx2825_cy1111__s0.4106__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__140__cx260_cy2281__s0.4197__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__190__cx728_cy2603__s0.4099__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__167__cx1676_cy1797__s0.5839__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__040__cx2502_cy1938__s0.5596__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__206__cx1414_cy2643__s0.4833__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__217__cx1414_cy2825__s0.4811__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__105__cx486_cy265__s0.4318__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__223__cx2361_cy2865__s0.4464__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__032__cx98_cy1676__s0.5153__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__226__cx3531_cy406__s0.4055__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__244__cx1414_cy2724__s0.4035__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__105__cx2301_cy2946__s0.4967__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__014__cx688_cy1877__s0.5423__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__245__cx1555_cy1736__s0.5678__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__094__cx1252_cy2623__s0.5218__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__132__cx103_cy244__s0.4219__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__223__cx2442_cy1736__s0.3754__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__168__cx2240_cy2845__s0.4680__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__033__cx1595_cy2059__s0.5639__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__199__cx829_cy118__s0.4084__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__161__cx2906_cy2543__s0.4148__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__220__cx1172_cy2583__s0.4801__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__089__cx1373_cy2643__s0.4413__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__235__cx1091_cy2885__s0.4771__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__186__cx446_cy2281__s0.4105__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__178__cx1716_cy2744__s0.4115__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__243__cx2200_cy1696__s0.4744__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__021__cx748_cy1857__s0.5333__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__128__cx2986_cy1797__s0.4886__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__102__cx123_cy224__s0.4342__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__232__cx2139_cy1898__s0.4604__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__020__cx98_cy1716__s0.5335__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__115__cx466_cy285__s0.4278__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__206__cx2724_cy1777__s0.4077__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__223__cx2845_cy1595__s0.4056__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__147__cx2099_cy1777__s0.5010__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__088__cx164_cy224__s0.4431__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__213__cx1595_cy2684__s0.4072__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__018__cx648_cy1756__s0.5362__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__232__cx1877_cy1111__s0.4782__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__148__cx2341_cy2946__s0.4773__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__090__cx325_cy244__s0.4412__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__005__cx627_cy1777__s0.5770__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__155__cx627_cy2301__s0.4158__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__212__cx1111_cy2684__s0.4822__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__099__cx2865_cy2381__s0.4355__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__186__cx2825_cy2321__s0.4567__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__170__cx2643_cy1373__s0.4128__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__051__cx1615_cy2099__s0.5521__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__191__cx2724_cy1817__s0.3847__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__211__cx285_cy2281__s0.4073__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__049__cx204_cy1615__s0.4753__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__045__cx1696_cy2119__s0.5562__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__026__cx1797_cy1756__s0.5257__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__227__cx3289_cy567__s0.4053__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__004__cx1756_cy1756__s0.5771__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__152__cx2301_cy789__s0.4169__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__133__cx2805_cy2260__s0.4218__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__207__cx365_cy18__s0.4076__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__100__cx219_cy2523__s0.4353__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__168__cx224_cy446__s0.4131__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__190__cx1612_cy2136__s0.4763__win151.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__134__cx527_cy2301__s0.4213__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__228__cx2220_cy2825__s0.4448__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__246__cx1071_cy2684__s0.4735__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__150__cx890_cy179__s0.4170__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__001__cx648_cy1817__s0.5892__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__221__cx1152_cy2764__s0.4800__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__224__cx446_cy2422__s0.4056__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__231__cx3893_cy184__s0.4051__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__232__cx1555_cy1817__s0.5696__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__215__cx2099_cy1736__s0.4818__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__245__cx809_cy2321__s0.4033__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__012__cx728_cy1877__s0.5468__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__153__cx2079_cy406__s0.4165__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__206__cx1575_cy1797__s0.5749__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__197__cx3551_cy426__s0.4088__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__007__cx769_cy1817__s0.5687__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__231__cx2160_cy2926__s0.4438__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__221__cx769_cy159__s0.4062__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__152__cx2643_cy1817__s0.3959__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__235__cx199_cy2361__s0.4047__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__204__cx748_cy2462__s0.4077__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__156__cx2845_cy2301__s0.4155__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__043__cx1575_cy1676__s0.4889__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__101__cx2099_cy728__s0.4349__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__010__cx123_cy1676__s0.5637__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__097__cx1635_cy345__s0.4360__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__190__cx1111_cy2906__s0.4868__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__137__cx2785_cy2180__s0.4204__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__048__cx1535_cy2099__s0.5550__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__220__cx1414_cy2684__s0.4062__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__022__cx139_cy1656__s0.5329__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__106__cx486_cy2301__s0.4309__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__103__cx63_cy2402__s0.4332__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__098__cx2684_cy1091__s0.4358__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__248__cx1575_cy1756__s0.5669__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__163__cx144_cy244__s0.4147__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__120__cx2301_cy244__s0.4253__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__044__cx1716_cy2160__s0.5574__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__058__cx1736_cy1736__s0.4689__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__118__cx1394_cy2623__s0.4257__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__201__cx2200_cy2845__s0.4559__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__172__cx2764_cy1978__s0.4124__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__160__cx386_cy345__s0.4149__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__008__cx607_cy1756__s0.5686__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__139__cx2785_cy1212__s0.4197__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__242__cx2099_cy2906__s0.4397__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__017__cx1535_cy1676__s0.5369__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__165__cx2502_cy849__s0.4140__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__158__cx2704_cy2321__s0.4731__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__160__cx2462_cy1756__s0.3935__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__053__cx1575_cy1716__s0.4718__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__216__cx2402_cy2926__s0.4500__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__166__cx1011_cy2039__s0.4936__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__230__cx2764_cy1837__s0.4051__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__217__cx2785_cy2099__s0.4068__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__137__cx2381_cy2845__s0.4813__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__084__cx2119_cy1756__s0.5261__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__059__cx2099_cy1676__s0.5377__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__146__cx1595_cy1696__s0.4184__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__183__cx910_cy2724__s0.4108__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__102__cx2946_cy1736__s0.5021__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__236__cx2543_cy890__s0.4047__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__091__cx2785_cy2281__s0.5064__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__185__cx869_cy2643__s0.4106__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__111__cx184_cy507__s0.4304__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__210__cx2764_cy2059__s0.4073__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__086__cx2381_cy406__s0.4435__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8580__000__cx708_cy890__s0.6133__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__135__cx2764_cy2019__s0.4208__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__228__cx1394_cy2885__s0.4787__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__179__cx1474_cy2583__s0.4113__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__205__cx2079_cy446__s0.4077__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__241__cx18_cy2502__s0.4040__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8580__001__cx2543_cy1333__s0.6078__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__130__cx648_cy2462__s0.4224__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__244__cx2664_cy1857__s0.3708__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__128__cx123_cy547__s0.4229__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__148__cx3168_cy1494__s0.4175__win28.jpg",
+        "y": 0
+      }
+    ],
+    "val": [
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__136__cx2422_cy2422__s0.4206__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__202__cx2583_cy970__s0.4081__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__126__cx144_cy527__s0.4236__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__246__cx2321_cy2865__s0.4386__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__016__cx179_cy1696__s0.5413__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__243__cx2623_cy1273__s0.4039__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__158__cx466_cy2603__s0.4153__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__195__cx345_cy2281__s0.4093__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__140__cx2341_cy1031__s0.5023__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8449__189__cx1656_cy1777__s0.5790__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__240__cx1273_cy2643__s0.4751__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__125__cx1797_cy2684__s0.4236__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__037__cx139_cy1696__s0.5095__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__002__cx1777_cy1736__s0.5875__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__087__cx1373_cy2583__s0.4433__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__173__cx2341_cy2906__s0.4662__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__220__cx2381_cy2986__s0.4477__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__232__cx2744_cy1817__s0.4050__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__145__cx849_cy2482__s0.4186__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__239__cx1394_cy2563__s0.4042__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__199__cx2684_cy2260__s0.4502__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__218__cx527_cy244__s0.4068__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__236__cx2462_cy1716__s0.3725__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__184__cx2664_cy2240__s0.4579__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__174__cx345_cy426__s0.4123__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__198__cx1454_cy2825__s0.4843__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__120__cx2785_cy2240__s0.4936__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__208__cx2260_cy2865__s0.4522__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__246__cx2583_cy1071__s0.4032__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8580__004__cx1656_cy365__s0.6015__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__241__cx2764_cy1756__s0.3713__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__142__cx2563_cy910__s0.4193__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__118__cx2764_cy2260__s0.4964__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__229__cx668_cy2623__s0.4052__win28.jpg",
+        "y": 0
+      }
+    ],
+    "test": [
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__109__cx1353_cy2664__s0.4306__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8580__141__cx2361_cy1011__s0.5021__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__185__cx970_cy2019__s0.4811__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__114__cx2543_cy2543__s0.4295__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__092__cx466_cy38__s0.4394__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__008__cx1535_cy2059__s0.5916__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__093__cx365_cy244__s0.4391__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8580__002__cx2523_cy1313__s0.6076__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__015__cx164_cy1656__s0.5421__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__108__cx2543_cy849__s0.4306__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__143__cx3389_cy426__s0.4193__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__196__cx325_cy386__s0.4092__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__149__cx204_cy224__s0.4174__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__112__cx1394_cy406__s0.4302__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__173__cx1011_cy1998__s0.4921__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__052__cx2966_cy1817__s0.5330__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__026__cx1575_cy2099__s0.5685__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__182__cx2180_cy2785__s0.4628__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__019__cx1555_cy2079__s0.5771__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8745__239__cx2059_cy2825__s0.4406__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8641__231__cx2805_cy1656__s0.3733__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__141__cx305_cy406__s0.4194__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__121__cx547_cy38__s0.4249__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__228__cx930_cy2643__s0.4053__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__157__cx2664_cy1353__s0.4155__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__240__cx2099_cy2684__s0.4040__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/no_qr/IMG_8510__094__cx2139_cy2643__s0.4382__win28.jpg",
+        "y": 0
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__006__cx1555_cy1696__s0.5762__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__136__cx2139_cy2019__s0.5103__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8483__165__cx1031_cy2059__s0.4955__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8498__191__cx2643_cy2301__s0.4529__win28.jpg",
+        "y": 1
+      },
+      {
+        "path": "data/patches/all/qr/IMG_8510__000__cx627_cy1736__s0.5915__win28.jpg",
+        "y": 1
+      }
+    ]
+  },
+  "counts": {
+    "train": {
+      "total": 266,
+      "no_qr": 133,
+      "qr": 133
+    },
+    "val": {
+      "total": 34,
+      "no_qr": 17,
+      "qr": 17
+    },
+    "test": {
+      "total": 32,
+      "no_qr": 16,
+      "qr": 16
+    }
+  }
+}

@@ -1,0 +1,4 @@
+model:
+  blocks_per_stage: [2, 3, 3, 2]
+logging:
+  run_name: "deeper_2332"

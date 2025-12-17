@@ -1,0 +1,4 @@
+train:
+  batch_size: 32
+logging:
+  run_name: "bs_32"

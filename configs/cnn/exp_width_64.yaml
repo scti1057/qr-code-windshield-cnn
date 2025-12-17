@@ -1,0 +1,4 @@
+model:
+  base_channels: 64
+logging:
+  run_name: "width_64"

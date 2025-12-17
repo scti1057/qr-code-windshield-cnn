@@ -1,0 +1,6 @@
+train:
+  optimizer: "sgd"
+  lr: 0.01
+  weight_decay: 0.0005
+logging:
+  run_name: "opt_sgd_lr1e-2"

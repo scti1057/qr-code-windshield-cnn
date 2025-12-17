@@ -1,0 +1,4 @@
+model:
+  activation: "leaky_relu"
+logging:
+  run_name: "act_leakyrelu"

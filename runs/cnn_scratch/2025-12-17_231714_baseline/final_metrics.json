@@ -1,0 +1,14 @@
+{
+  "best_epoch": 22,
+  "best_monitor": "val_loss",
+  "best_metric": 0.021655822172760963,
+  "final_val": {
+    "loss": 0.0294202771037817,
+    "acc": 0.9999999999705883
+  },
+  "final_test": {
+    "loss": 0.14952047169208527,
+    "acc": 0.9374999999707032
+  },
+  "device": "mps"
+}

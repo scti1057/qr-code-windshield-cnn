@@ -1,0 +1,61 @@
+seed: 42
+
+data:
+  root_all: "data/patches/all"
+  classes: ["no_qr", "qr"]
+  split:
+    train: 0.80
+    val: 0.10
+    test: 0.10
+  split_cache: "data/splits/patches_split_seed42.json"
+  img_size: 265
+
+augment:
+  enabled: true
+  hflip_p: 0.2
+  rotate_deg: 360          # wichtig wegen gedrehter QR-Codes
+  perspective_p: 0.25
+  blur_p: 0.25
+  brightness: 0.2
+  contrast: 0.2
+  jpeg_p: 0.2
+
+model:
+  name: "tinyqrnet_v1"
+  in_channels: 3
+  base_channels: 32        # 16/32/64 als Sweep
+  blocks_per_stage: [2, 2, 2, 2]
+  kernel_size: 3
+  activation: "relu"       # sweeps: relu | leaky_relu | elu
+  batch_norm: true
+  dropout: 0.2
+  global_pool: "avg"       # avg empfohlen
+  num_outputs: 1           # binary logit
+
+train:
+  device: "mps"           # "cuda" oder "cpu" oder "mps"
+  epochs: 80
+  batch_size: 64
+  lr: 0.001
+  optimizer: "adam"        # sweeps: adam | adamw | sgd | rmsprop
+  weight_decay: 0.0001
+  loss: "bce_logits"       # sweeps: bce_logits | focal
+  label_smoothing: 0.0
+
+  scheduler:
+    type: "cosine"         # sweeps: none | cosine | step
+    step_size: 15          # nur bei step
+    gamma: 0.5
+
+  early_stopping:
+    enabled: true
+    monitor: "val_loss"
+    patience: 10
+    min_delta: 0.0005
+
+logging:
+  runs_dir: "runs/cnn_scratch"
+  run_name: "baseline"
+  save_best: true
+  save_last: true
+  save_every_epochs: 0     # 0 = aus, sonst z.B. 5
