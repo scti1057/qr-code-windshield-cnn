@@ -1,0 +1,31 @@
+{
+  "patch_size": 265,
+  "score_max_dim": 3200,
+
+  "win_min": 28,
+  "win_max": 520,
+  "n_scales": 5,
+
+  "stride_coarse": 48,
+  "stride_fine": 16,
+  "refine_radius": 140,
+
+  "top_k_coarse": 180,
+  "top_k_fine_each": 25,
+  "top_k_final": 250,
+
+  "iou_thresh": 0.22,
+  "score_thr": 0.22,
+
+  "w_edges": 0.75,
+  "w_corners": 1.60,
+  "w_grad": 0.45,
+  "w_aniso": 1.60,
+
+  "canny_low": 30,
+  "canny_high": 110,
+
+  "harris_k": 0.04,
+  "harris_thr_rel": 0.0045,
+  "st_sigma": 1.6
+}

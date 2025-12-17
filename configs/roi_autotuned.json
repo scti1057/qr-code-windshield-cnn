@@ -1,0 +1,16 @@
+{
+  "patch_size": 265,
+  "score_max_dim": 3840,
+  "win_min": 50,
+  "win_max": 320,
+  "n_scales": 3,
+  "w_edges": 0.0,
+  "w_corners": 0.0,
+  "w_grad": 0.0,
+  "w_aniso": 2.506556047291474,
+  "canny_low": 74,
+  "canny_high": 255,
+  "harris_k": 0.04,
+  "harris_thr_rel": 0.0072721105984110326,
+  "st_sigma": 0.5946430101722834
+}
