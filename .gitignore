@@ -1,0 +1,5 @@
+
+# keep data dir but ignore its contents
+/data/*
+!/data/.gitkeep
+
