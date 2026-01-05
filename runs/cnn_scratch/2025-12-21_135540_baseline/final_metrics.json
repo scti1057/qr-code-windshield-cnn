@@ -1,0 +1,18 @@
+{
+  "best_epoch": 70,
+  "best_monitor": "val_loss",
+  "best_metric": 0.007548853765649636,
+  "final_val": {
+    "loss": 0.008360975572620244,
+    "acc": 0.9999999999983661
+  },
+  "final_test": {
+    "loss": 0.012585998077380967,
+    "acc": 0.9983766233750027
+  },
+  "device": "mps",
+  "config_sources": {
+    "base": "/Users/timschafer/Documents/Masterstudium/2. Semester/Ku\u0308nstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml",
+    "overrides": []
+  }
+}

@@ -1,0 +1,48 @@
+$ /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py --base /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml
+
+[Epoch 001] lr=1.00e-03 train_loss=0.2964 train_acc=0.880 | val_loss=0.1938 val_acc=0.946 val_f1=0.948 (best val_loss=0.1938 @ 1)
+[Epoch 002] lr=1.00e-03 train_loss=0.2191 train_acc=0.915 | val_loss=0.1128 val_acc=0.978 val_f1=0.978 (best val_loss=0.1128 @ 2)
+[Epoch 003] lr=9.98e-04 train_loss=0.1550 train_acc=0.941 | val_loss=0.7243 val_acc=0.692 val_f1=0.564 (best val_loss=0.1128 @ 2)
+[Epoch 004] lr=9.97e-04 train_loss=0.1682 train_acc=0.939 | val_loss=0.6845 val_acc=0.857 val_f1=0.875 (best val_loss=0.1128 @ 2)
+[Epoch 005] lr=9.94e-04 train_loss=0.1603 train_acc=0.940 | val_loss=0.1003 val_acc=0.968 val_f1=0.969 (best val_loss=0.1003 @ 5)
+[Epoch 006] lr=9.90e-04 train_loss=0.1187 train_acc=0.957 | val_loss=0.0967 val_acc=0.990 val_f1=0.990 (best val_loss=0.0967 @ 6)
+[Epoch 007] lr=9.86e-04 train_loss=0.1187 train_acc=0.957 | val_loss=0.1136 val_acc=0.970 val_f1=0.969 (best val_loss=0.0967 @ 6)
+[Epoch 008] lr=9.81e-04 train_loss=0.1297 train_acc=0.954 | val_loss=0.0986 val_acc=0.982 val_f1=0.982 (best val_loss=0.0967 @ 6)
+[Epoch 009] lr=9.76e-04 train_loss=0.1083 train_acc=0.962 | val_loss=0.0761 val_acc=0.980 val_f1=0.980 (best val_loss=0.0761 @ 9)
+[Epoch 010] lr=9.69e-04 train_loss=0.0967 train_acc=0.968 | val_loss=0.0843 val_acc=0.986 val_f1=0.986 (best val_loss=0.0761 @ 9)
+[Epoch 011] lr=9.62e-04 train_loss=0.1028 train_acc=0.965 | val_loss=0.0784 val_acc=0.988 val_f1=0.988 (best val_loss=0.0761 @ 9)
+[Epoch 012] lr=9.54e-04 train_loss=0.0984 train_acc=0.962 | val_loss=0.0786 val_acc=0.990 val_f1=0.990 (best val_loss=0.0761 @ 9)
+[Epoch 013] lr=9.46e-04 train_loss=0.0910 train_acc=0.965 | val_loss=0.0491 val_acc=0.988 val_f1=0.988 (best val_loss=0.0491 @ 13)
+[Epoch 014] lr=9.36e-04 train_loss=0.0950 train_acc=0.967 | val_loss=0.1016 val_acc=0.988 val_f1=0.988 (best val_loss=0.0491 @ 13)
+[Epoch 015] lr=9.26e-04 train_loss=0.0914 train_acc=0.966 | val_loss=0.5787 val_acc=0.899 val_f1=0.889 (best val_loss=0.0491 @ 13)
+[Epoch 016] lr=9.16e-04 train_loss=0.0941 train_acc=0.968 | val_loss=0.2863 val_acc=0.891 val_f1=0.881 (best val_loss=0.0491 @ 13)
+[Epoch 017] lr=9.05e-04 train_loss=0.0751 train_acc=0.974 | val_loss=0.0505 val_acc=0.988 val_f1=0.988 (best val_loss=0.0491 @ 13)
+[Epoch 018] lr=8.93e-04 train_loss=0.0686 train_acc=0.977 | val_loss=0.0825 val_acc=0.990 val_f1=0.990 (best val_loss=0.0491 @ 13)
+[Epoch 019] lr=8.80e-04 train_loss=0.1007 train_acc=0.964 | val_loss=0.0579 val_acc=0.992 val_f1=0.992 (best val_loss=0.0491 @ 13)
+[Epoch 020] lr=8.67e-04 train_loss=0.1009 train_acc=0.964 | val_loss=0.0431 val_acc=0.994 val_f1=0.994 (best val_loss=0.0431 @ 20)
+[Epoch 021] lr=8.54e-04 train_loss=0.0708 train_acc=0.974 | val_loss=0.0620 val_acc=0.996 val_f1=0.996 (best val_loss=0.0431 @ 20)
+[Epoch 022] lr=8.39e-04 train_loss=0.0728 train_acc=0.976 | val_loss=0.1727 val_acc=0.905 val_f1=0.897 (best val_loss=0.0431 @ 20)
+[Epoch 023] lr=8.25e-04 train_loss=0.0827 train_acc=0.969 | val_loss=0.0233 val_acc=0.996 val_f1=0.996 (best val_loss=0.0233 @ 23)
+[Epoch 024] lr=8.10e-04 train_loss=0.0618 train_acc=0.979 | val_loss=0.1100 val_acc=0.972 val_f1=0.971 (best val_loss=0.0233 @ 23)
+[Epoch 025] lr=7.94e-04 train_loss=0.0641 train_acc=0.977 | val_loss=0.0830 val_acc=0.966 val_f1=0.965 (best val_loss=0.0233 @ 23)
+[Epoch 026] lr=7.78e-04 train_loss=0.0517 train_acc=0.983 | val_loss=0.0602 val_acc=0.996 val_f1=0.996 (best val_loss=0.0233 @ 23)
+[Epoch 027] lr=7.61e-04 train_loss=0.0574 train_acc=0.979 | val_loss=0.1496 val_acc=0.913 val_f1=0.908 (best val_loss=0.0233 @ 23)
+[Epoch 028] lr=7.44e-04 train_loss=0.0556 train_acc=0.983 | val_loss=0.1047 val_acc=0.980 val_f1=0.980 (best val_loss=0.0233 @ 23)
+[Epoch 029] lr=7.27e-04 train_loss=0.0528 train_acc=0.983 | val_loss=0.0406 val_acc=0.996 val_f1=0.996 (best val_loss=0.0233 @ 23)
+[Epoch 030] lr=7.09e-04 train_loss=0.0671 train_acc=0.977 | val_loss=0.0194 val_acc=0.994 val_f1=0.994 (best val_loss=0.0194 @ 30)
+[Epoch 031] lr=6.91e-04 train_loss=0.0484 train_acc=0.983 | val_loss=0.2959 val_acc=0.879 val_f1=0.864 (best val_loss=0.0194 @ 30)
+[Epoch 032] lr=6.73e-04 train_loss=0.0468 train_acc=0.983 | val_loss=0.0441 val_acc=0.992 val_f1=0.992 (best val_loss=0.0194 @ 30)
+[Epoch 033] lr=6.55e-04 train_loss=0.0548 train_acc=0.981 | val_loss=0.0757 val_acc=0.992 val_f1=0.992 (best val_loss=0.0194 @ 30)
+[Epoch 034] lr=6.36e-04 train_loss=0.0526 train_acc=0.982 | val_loss=0.0296 val_acc=0.996 val_f1=0.996 (best val_loss=0.0194 @ 30)
+[Epoch 035] lr=6.17e-04 train_loss=0.0532 train_acc=0.982 | val_loss=0.0349 val_acc=0.994 val_f1=0.994 (best val_loss=0.0194 @ 30)
+[Epoch 036] lr=5.98e-04 train_loss=0.0500 train_acc=0.981 | val_loss=0.0317 val_acc=0.994 val_f1=0.994 (best val_loss=0.0194 @ 30)
+[Epoch 037] lr=5.78e-04 train_loss=0.0469 train_acc=0.984 | val_loss=0.1411 val_acc=0.899 val_f1=0.889 (best val_loss=0.0194 @ 30)
+[Epoch 038] lr=5.59e-04 train_loss=0.0435 train_acc=0.983 | val_loss=0.0365 val_acc=0.994 val_f1=0.994 (best val_loss=0.0194 @ 30)
+[Epoch 039] lr=5.39e-04 train_loss=0.0479 train_acc=0.984 | val_loss=0.0372 val_acc=0.996 val_f1=0.996 (best val_loss=0.0194 @ 30)
+[Epoch 040] lr=5.20e-04 train_loss=0.0443 train_acc=0.984 | val_loss=0.0327 val_acc=0.996 val_f1=0.996 (best val_loss=0.0194 @ 30)
+[EarlyStopping] stop at epoch 40 (no improvement for 10 epochs).
+
+Done.
+Run dir: /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/runs/cnn_scratch/2026-01-05_000717_baseline
+Best checkpoint: /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/runs/cnn_scratch/2026-01-05_000717_baseline/best.pt
+Last checkpoint: /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/runs/cnn_scratch/2026-01-05_000717_baseline/last.pt
