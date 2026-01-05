@@ -1,6 +1,7 @@
 train:
   optimizer: "adamw"
   lr: 0.001
-  weight_decay: 0.001
+  weight_decay: 0.0001
+
 logging:
-  run_name: "opt_adamw_wd1e-3"
+  run_name: "opt_adamw"

@@ -10,6 +10,16 @@ import cv2
 import numpy as np
 
 
+"""
+Interactive ROI tuner GUI for windshield QR code patch extraction.
+Example usage:
+
+python3 scripts/roi_tuner_gui.py \
+  --input data/raw \
+  --load-config configs/roi_tuner_params.json
+
+"""
+
 # ---------- Utils ----------
 def iter_image_files(input_path: Path) -> List[Path]:
     exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
