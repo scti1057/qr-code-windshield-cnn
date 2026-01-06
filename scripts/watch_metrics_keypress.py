@@ -12,7 +12,7 @@ Watch and plot metrics.csv on keypress.
 Usage:
 
 python3 scripts/watch_metrics_keypress.py \
-  --metrics runs/cnn_scratch/<DEIN_RUN_ORDNER>/metrics.csv
+  --metrics runs/cnn_scratch/2026-01-05_195436_loss_focal/metrics.csv
 
 """
 

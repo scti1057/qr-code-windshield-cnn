@@ -1,0 +1,67 @@
+$ /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py --base /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml
+
+Traceback (most recent call last):
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 740, in <module>
+    main()
+    ~~~~^^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 643, in main
+    train_loss, train_acc, _ = train_one_epoch(
+                               ~~~~~~~~~~~~~~~^
+        model, train_loader, optimizer, loss_name, device, label_smoothing=label_smoothing
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 372, in train_one_epoch
+    logits = model(x_t)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 249, in forward
+    x = self.features(x)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 203, in forward
+    return self.net(x)
+           ~~~~~~~~^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ~~~~~~~~^
+        input, weight, bias, self.stride, self.padding, self.dilation, self.groups
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+KeyboardInterrupt

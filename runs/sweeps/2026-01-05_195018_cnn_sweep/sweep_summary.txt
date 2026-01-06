@@ -1,0 +1,12 @@
+Sweep: 2026-01-05_195018_cnn_sweep
+Base: /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml
+Overrides:
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_bs_32.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_act_leakyrelu.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_width_64.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_deeper.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_loss_focal.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_opt_adamw.yaml
+  - /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_opt_sgd.yaml
+
+Results:

@@ -1,0 +1,20 @@
+{
+  "best_epoch": 10,
+  "best_monitor": "val_loss",
+  "best_metric": 0.008649730243750157,
+  "final_val": {
+    "loss": 0.008786939955767124,
+    "acc": 0.9858870967722059
+  },
+  "final_test": {
+    "loss": 0.06046050759377303,
+    "acc": 0.8495370370360538
+  },
+  "device": "mps",
+  "config_sources": {
+    "base": "/Users/timschafer/Documents/Masterstudium/2. Semester/Ku\u0308nstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml",
+    "overrides": [
+      "/Users/timschafer/Documents/Masterstudium/2. Semester/Ku\u0308nstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_loss_focal.yaml"
+    ]
+  }
+}

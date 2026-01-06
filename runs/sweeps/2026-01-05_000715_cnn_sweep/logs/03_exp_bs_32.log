@@ -1,0 +1,36 @@
+$ /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py --base /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/baseline.yaml --override /Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/configs/cnn/exp_bs_32.yaml
+
+[Epoch 001] lr=1.00e-03 train_loss=0.3034 train_acc=0.878 | val_loss=0.0918 val_acc=0.968 val_f1=0.969 (best val_loss=0.0918 @ 1)
+[Epoch 002] lr=1.00e-03 train_loss=0.2565 train_acc=0.900 | val_loss=1.2545 val_acc=0.573 val_f1=0.329 (best val_loss=0.0918 @ 1)
+Traceback (most recent call last):
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 740, in <module>
+    main()
+    ~~~~^^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 643, in main
+    train_loss, train_acc, _ = train_one_epoch(
+                               ~~~~~~~~~~~~~~~^
+        model, train_loader, optimizer, loss_name, device, label_smoothing=label_smoothing
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 364, in train_one_epoch
+    for x, y in loader:
+                ^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/utils/data/dataloader.py", line 734, in __next__
+    data = self._next_data()
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/utils/data/dataloader.py", line 790, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 171, in __getitem__
+    img = self._augment(img)
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 151, in _augment
+    img = self._maybe_rotate(img)
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 103, in _maybe_rotate
+    return self._rotate(img, deg)
+           ~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/timschafer/Documents/Masterstudium/2. Semester/Künstliche Intelligenz/QR_Code_Windshield/qr-code-windshield-cnn/scripts/train_cnn_from_scratch.py", line 96, in _rotate
+    return cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

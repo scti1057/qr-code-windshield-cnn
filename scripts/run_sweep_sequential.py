@@ -35,6 +35,7 @@ python3 scripts/run_sweep_sequential.py \
     configs/cnn/exp_opt_adamw.yaml \
     configs/cnn/exp_opt_sgd.yaml
 
+
 # Dry-run (print commands only):
 python3 scripts/run_sweep_sequential.py --dry-run
 """
