@@ -1,0 +1,26 @@
+preprocess:
+  mean: [0.485, 0.456, 0.406]
+  std:  [0.229, 0.224, 0.225]
+
+data:
+  img_size: 224   # optional (typisch für ImageNet-Pretraining)
+
+train:
+  lr: 0.0003      # TL-LR meistens kleiner als scratch
+  optimizer: "adamw"
+  epochs: 40
+
+logging:
+  runs_dir: "runs/cnn_scratch"
+  run_name: "transfer"
+
+transfer:
+  models: ["resnet18", "efficientnet_b0", "mobilenet_v3_large"]
+  pretrained: true
+  freeze_backbone: true
+  warmup_epochs: 2
+  backbone_lr_mult: 0.1
+
+model_head:
+  dropout: 0.2
+  num_outputs: 1

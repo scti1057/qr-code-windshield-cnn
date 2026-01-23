@@ -3,3 +3,27 @@
 /data/*
 !/data/.gitkeep
 
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore experiment / training outputs
+runs/
+wandb/
+
+# Ignore model weights
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+
+# Ignore debug scripts if unwanted
+scripts/*_runs*.py
+scripts/debug_*.py
+
