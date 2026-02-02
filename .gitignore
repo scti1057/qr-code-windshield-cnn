@@ -44,3 +44,4 @@ scripts/debug_*.py
 *.ist
 *.bbl-SAVE-ERROR
 *.run.xml
+thesis.pdf
