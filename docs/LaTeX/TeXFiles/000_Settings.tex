@@ -1,0 +1,114 @@
+\newcommand{\NameA}{Paul Glaser, B. Eng}
+\newcommand{\StudentIdA}{glpa1013 / Matrikelnr. 100215}
+\newcommand{\NameB}{Tim Schäfer, B. Eng}
+\newcommand{\StudentIdB}{scti1057 / Matrikelnr. 71606}
+\newcommand{\ThesisTitle}{Projektaufgabe Künstliche Intelligenz}
+\newcommand{\ThesisTitleShort}{QR-Code }
+\newcommand{\ThesisSubtitle}{QR-Code-Erkennung in einer Waschstraße mittels Künstlicher Intelligenz}
+\newcommand{\Subject}{Künstliche Intelligenz --~Wintersemester 25/26}
+\newcommand{\Supervisor}{Prof.~Dr.-Ing.~habil. Catherina Burghart}
+\newcommand{\Faculty}{Fakultät für Maschinenbau und Mechatronik}
+\newcommand{\University}{Hochschule Karlsruhe}
+\newcommand{\UniversityLocation}{Karlsruhe}
+\newcommand{\ThesisDeliveryDate}{09.~Februar~2026}
+\newcommand{\CompanyName}{NoCompanyInvolved}  % don't modify this line, if no company is involved
+
+%\renewcommand{\theenumi}{\textbf{(\alph*{enumi})}} % Setze die Aufzählung auf fett
+
+
+\newcommand{\VarPicWidthA}{\textwidth}
+\newcommand{\VarPicWidthB}{0.9\textwidth}
+\newcommand{\VarPicWidthC}{0.8\textwidth}
+\newcommand{\VarPicWidthD}{0.7\textwidth}
+\newcommand{\VarPicWidthE}{0.6\textwidth}
+\newcommand{\VarPicWidthF}{0.49\textwidth}
+\newcommand{\VarPicWidthG}{0.32\textwidth}
+\newcommand{\VarPicWidthH}{0.24\textwidth}
+\newcommand{\VarPicWidthI}{0.2\textwidth}
+\newcommand{\VarPicWidthJ}{0.469\textwidth}
+\newcommand{\VarPicWidthK}{0.45\textwidth}
+
+\newcolumntype{X}{>{\raggedleft\arraybackslash}X} % zentriert
+\newcolumntype{Y}{>{\centering\arraybackslash}X} % zentriert
+\newcolumntype{Z}{>{\raggedright\arraybackslash}X} % linksbündig
+
+%\definecolor{blue40} {rgb}{0.0000, 0.3843, 0.6039}
+\definecolor{blue50} {rgb}{0.0000, 0.4824, 0.7529}
+%\definecolor{blue55} {rgb}{0.0000, 0.5333, 0.8314}
+\definecolor{turq50} {rgb}{0.0941, 0.5137, 0.4941}
+%\definecolor{green40}{rgb}{0.0000, 0.4235, 0.2275}
+\definecolor{green50}{rgb}{0.0000, 0.5333, 0.2902}
+%\definecolor{green55}{rgb}{0.1294, 0.5843, 0.3412}
+\definecolor{purp40} {rgb}{0.6196, 0.1569, 0.5882}
+%\definecolor{red40}  {rgb}{0.7451, 0.0000, 0.0157}
+\definecolor{red50}  {rgb}{0.9294, 0.0000, 0.0725}
+%\definecolor{red55}  {rgb}{1.0000, 0.1294, 0.1412}
+\definecolor{gray40} {rgb}{0.3490, 0.3686, 0.3843}%
+\definecolor{gray70} {rgb}{0.6431, 0.6706, 0.7020}%
+
+\newcommand{\ti}[1]{_\mathrm{#1}}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+\newcommand{\abs}[1]{\ensuremath{\left\vert#1\right\vert}}
+\newcommand{\rdown}[1]{\ensuremath{\left\lfloor#1\right\rfloor}}
+%\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+
+% Abstand für den Rahmen auf 0pt setzen
+\setlength{\fboxsep}{0pt}
+
+\newlist{listNorm}{enumerate}{4}
+\setlist[listNorm,1]{label={\scriptsize\(\bullet\)}}
+\setlist[listNorm,2]{label={\scriptsize-}}
+\newlist{listArab}{enumerate}{4}
+\setlist[listArab]{label*=\arabic*.}
+\newlist{listAlph}{enumerate}{4}
+\setlist[listAlph]{label*=(\alph*)}
+\newlist{listAlphB}{enumerate}{4}
+\setlist[listAlphB]{label*=\textbf{(\alph*)}}
+
+% Definieren von Stilen für die Formen und Pfeile im Diagramm
+\tikzstyle{startstop} 		= [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black]
+\tikzstyle{process}			= [rectangle, rounded corners, text centered, draw=black]
+\tikzstyle{info} 			= [rectangle, text centered, draw=none]
+\tikzstyle{decision} 		= [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+\tikzstyle{arrow} 			= [thick,->,>=stealth]
+\tikzstyle{arrow2} 			= [thick,<->,>=stealth]
+\tikzstyle{vorangeganen} 	= [rectangle, rounded corners, text centered, draw=black, fill=blue55, fill opacity=0.1]
+\tikzstyle{hier} 			= [rectangle, rounded corners, text centered, draw=black]
+\tikzstyle{weiterführen} 	= [rectangle, rounded corners, text centered, draw=black, fill=green55, fill opacity=0.1]
+
+% For code
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{HKA_MMTblue}, % Nutzung der HKA Farbe für Strings
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=Python
+}
+\lstset{style=pythonstyle}
+
+
+%%%%%%%%%%%%%%%%%%%%% FOR ENGLISH LANGUAGE THESIS: %%%%%%%%%%%%%%%%%%%%
+
+% By default the thesis language is german
+% if you want to set it to ENGLISH, then UNCOMMENT the FOLLOWING LINE by removing the leading "%":
+
+%\newcommand*{\ThesisLanguageIsEnglish}{}
+
+%% End of File

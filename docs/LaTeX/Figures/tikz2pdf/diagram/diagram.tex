@@ -1,0 +1,47 @@
+\documentclass[tikz,border=0pt,12pt]{standalone} % 'border=10pt' fügt einen kleinen Rand hinzu
+\usepackage{tikz}  % Paket für TikZ
+\usepackage{pgfplots}
+\usepackage{xcolor}    % Für das Definieren von Farben
+
+\usetikzlibrary{plotmarks}
+
+\pgfplotsset{compat=newest}  % Kompatibilität für die neueste Version
+
+
+%%%% Serifenloser Textstil fuer das ganze Dokument: 
+\RequirePackage[sfdefault,lf]{carlito}
+\usepackage{lmodern}
+% \RequirePackage[T1]{fontenc}
+% to imitate Calibri:
+\renewcommand*\familydefault{\sfdefault} %% Base font of the document is to be sans serif
+
+\begin{document}
+	%\definecolor{blue40} {rgb}{0.0000, 0.3843, 0.6039}
+	\definecolor{blue50} {rgb}{0.0000, 0.4824, 0.7529}
+	%\definecolor{blue55} {rgb}{0.0000, 0.5333, 0.8314}
+	\definecolor{turq50} {rgb}{0.0941, 0.5137, 0.4941}
+	%\definecolor{green40}{rgb}{0.0000, 0.4235, 0.2275}
+	\definecolor{green50}{rgb}{0.0000, 0.5333, 0.2902}
+	%\definecolor{green55}{rgb}{0.1294, 0.5843, 0.3412}
+	\definecolor{purp40} {rgb}{0.6196, 0.1569, 0.5882}
+	%\definecolor{red40}  {rgb}{0.7451, 0.0000, 0.0157}
+	\definecolor{red50}  {rgb}{0.9294, 0.0000, 0.0725}
+	%\definecolor{red55}  {rgb}{1.0000, 0.1294, 0.1412}
+	\definecolor{gray40} {rgb}{0.3490, 0.3686, 0.3843}%
+	\definecolor{gray70} {rgb}{0.6431, 0.6706, 0.7020}%
+	
+	% Definiere eine neue Länge für die Breite
+	% For Pics standing alone
+	\newlength{\mywidthA}
+	\setlength{\mywidthA}{11.34cm} 		% 0.7 * (21 - 2 - 2.8) [cm]
+	\newlength{\myheightA}
+	\setlength{\myheightA}{5.67cm} 		% 0.5 * 0.7 * (21 - 2 - 2.8) [cm]
+	
+	% For Pics in subfigures
+	\newlength{\mywidthB}
+	\setlength{\mywidthB}{12.96cm} 		% 0.8 * (21 - 2 - 2.8) [cm]
+	\newlength{\myheightB}
+	\setlength{\myheightB}{8.6832cm} 	% 0.67 * 0.8 * (21 - 2 - 2.8) [cm]
+	
+	\input{tikz_files/ratioEI_vs_dsRate_withAdaptions.tex}
+\end{document}

@@ -1,0 +1,429 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Template for group Projects by students of Hochschule Karlsruhe (University of Applied Sciences)
+% 
+% created by: Prof. Dr.-Ing. Thomas Hollstein (for Frakfurt University of Applied Sciences)
+% adapted by: Paul Glaser, B. Eng (for Hochschule Karlsruhe)
+% 
+% Last revision of Prof. Dr.-Ing. T. Hollstein: 22.06.2023
+% Last revision of P. Glaser: 02.04.2025
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+%%%%% Basic formatting %%%%%
+\documentclass[
+	%twoside, 
+	%openright,
+	titlepage,
+	numbers=noenddot,
+	headinclude,
+	%1headlines,
+	footinclude=true,
+	%cleardoublepage=empty,
+	%BCOR=5mm,
+	fontsize=12pt,%11pt,
+	paper=a4paper,
+	%letterpaper
+	ngerman,
+	american,
+	%table
+ ]
+%% Document type: (specifies basic formatting guidelines)
+%{report}
+{scrreprt}
+%{book}
+
+% Colored Text
+\usepackage{xcolor}
+\usepackage{colortbl}
+
+\parindent = 0pt % Do not indent new paragraphs
+\parskip = 1ex % New paragraphs: 1/2 line spacing
+
+
+
+
+%%%%%%%%%%%%%%%
+%%%%% Settings %%%%%
+%%%%%%%%%%%%%%%
+
+
+
+
+%%%%% integrate packages to be used %%%%%
+
+
+%% For ToDos
+%\usepackage{todonotes}
+
+
+%% Package Comments
+\usepackage{comment}
+\usepackage[textwidth=3cm]{todonotes} %[colorinlistoftodos]
+\newcommand{\mycomment}[1]{\todo[inline,linecolor=red,backgroundcolor=yellow!25,bordercolor=green,caption={}]{?? TODO: #1}}
+
+
+%% Package Language support:
+\usepackage[utf8]{inputenc} % Set input encoding to UTF-8
+\usepackage[T1]{fontenc}    % Set font encoding to T1
+\usepackage[ngerman]{babel}
+%\usepackage[german]{babel}
+\usepackage[autostyle]{csquotes}
+%\usepackage{csquotes}
+
+
+%% Package Multirow allows a box in a table to span multiple rows
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{booktabs}
+\usepackage{arydshln}
+% Examples: https://texblog.org/2012/12/21/multi-column-and-multi-row-cells-in-latex-tables/
+
+%% Joining fields in tables:
+%\multicolumn{number cols}{align}{text} % align: l,c,r
+%\multirow{number rows}{width}{text}
+
+
+%% Sans serif text style for the entire document
+\RequirePackage[sfdefault,lf]{carlito}
+\usepackage{lmodern}
+% \RequirePackage[T1]{fontenc}
+% to imitate Calibri:
+\renewcommand*\familydefault{\sfdefault} % Base font of the document is to be sans serif
+\usepackage{lipsum}
+\usepackage{listings}
+
+
+%% Embed graphics
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{lscape}
+\usepackage{svg}
+\usepackage{pgf-pie}
+\usepackage{transparent}
+\usepackage{pdfpages}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\pgfplotsset{plot coordinates/math parser=false}
+\usetikzlibrary{patterns,arrows,shapes,positioning,shadows,trees,calc,positioning,external}
+\usepackage{tikz}
+%\tikzexternalize[prefix=Figures/tikzexternalize_cache/,optimize command away=\includepdf]
+\tikzexternaldisable
+% https://golatex.de//wiki/%5cincludegraphics
+
+%% For tree diagrams
+\tikzset{
+	basic/.style  = {draw, rectangle},
+	root/.style   = {basic, rounded corners=2pt, thin, align=center},
+	level 2/.style = {basic, rounded corners=6pt, thin,align=center, text width=5em},
+	level 3/.style = {basic, align=left, draw=none, text width=60}
+}
+
+
+%% Calculations
+%https://tex.stackexchange.com/questions/30081/how-can-i-sum-two-values-and-store-the-result-in-other-variable
+\usepackage{tikz}
+\usetikzlibrary{math}
+\usepackage{amssymb}
+\usepackage[fleqn,reqno]{amsmath}
+\usepackage{mathtools}
+
+
+%% fractures
+\usepackage{nicefrac} % For comparison
+\usepackage{xfrac}    % Works better with other fonts
+\usepackage{romannum}
+
+
+%% More flexible tables
+\usepackage{tabularx}
+% \usepackage{xltabular}
+\def\tabularxcolumn#1{m{#1}}
+\usepackage{enumitem}
+%\usepackage{enumerate}
+\usepackage{layouts}
+\usepackage{listliketab}
+\usepackage{rotating} 
+
+
+%% Boxes for Lickert scales
+\usepackage{wasysym}
+\newcommand\insq[1]{%
+	\Square\ #1\quad%
+}
+
+
+% Strikethrough text
+\usepackage[normalem]{ulem} % mit \sout
+
+
+%% Use total page count
+\usepackage{totpages}
+
+
+%%%%% ----->>>>> CONFLICTS WITH ENUMITEM <<<<<----- %%%%%
+%%% Advanced formats for lists/enumerations
+%\usepackage{paralist}
+%\setdefaultitem{}{\textbullet}{$\star$}{} % Default items for the four possible nesting levels
+%%%%% ----->>>>> CONFLICTS WITH ENUMITEM <<<<<----- %%%%%
+
+
+%% Hyperlinks
+% https://www.overleaf.com/learn/latex/Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+	%hyperindex=true,
+	%linktocpage=true, % Page number linked instead of title
+	colorlinks=true,
+	linkcolor=black,
+	filecolor=black,      
+	urlcolor=black,
+	pdftitle={Thesis},
+	citecolor=black,
+	pdfpagemode=UseNone, % No automatic view setting
+	pdfstartpage=1,      % Starts on the first page
+	pdfstartview=Fit     % Shows the entire page in the window
+}
+
+
+%% Include acronym definitions
+\usepackage[printonlyused]{acronym}
+\usepackage{tocloft}
+%\input{TeXFiles/005_Acronyms}
+
+
+%% Include glossary
+\usepackage{glossaries}
+\input{TeXFiles/005_Glossar.tex}
+%\usepackage[record]{bib2gls}
+%\addbibresource{Glossar.bib}
+
+
+
+%%%%% Adjust page geometry %%%%%
+% https://tex.stackexchange.com/questions/344241/logo-as-header-using-fancyhdr-package
+\usepackage{geometry}
+\geometry{verbose,
+	bmargin=2cm,
+	lmargin=2.8cm,
+	rmargin=3.5cm
+	%footskip=-25pt
+}
+
+
+%% Calculate the amount of the top margin
+\newlength\mytopmargin
+\newsavebox{\headbox}\savebox{\headbox}{
+	%\includegraphics[width=0.3\textwidth]{Figures/xxx.png} \hfill
+	\raisebox{-1ex}{\includegraphics[width=0.1\textwidth]{Figures/png/HKA_Logo.png}}
+}    
+\setlength{\mytopmargin}{\totalheightof{\usebox{\headbox}}+2cm}
+\geometry{verbose,
+	tmargin=\mytopmargin,
+	headheight=1.1\mytopmargin,
+	footskip=6ex
+}
+
+%% Line spacing for the entire document (1.0 = normal value)
+\renewcommand{\baselinestretch}{1.0}
+
+%% Table of contents up to the 2nd numbering level
+\setcounter{tocdepth}{1}
+
+
+
+%%%%% Designing headers and footers %%%%%
+% https://tex.stackexchange.com/questions/344241/logo-as-header-using-fancyhdr-package
+\usepackage{fancyhdr}
+\pagestyle{fancy}  % Eigener Seitenstil
+\fancyhf{}         % Alle Kopf- und Fußzeilenfelder bereinigen
+%\fancyhead[L]{} % Kopfzeile links
+\fancyhead[l]{\leftmark
+	%\makebox[0.3\textwidth]{\includegraphics[width=0.3\textwidth]{Figures/xxx.png}}
+}  
+% \fancyhead[c]{\hspace*{0.15\textwidth}\rightmark}
+%\fancyhead[C]{\usebox\headbox}                        % Centered header
+\fancyhead[R]{
+%	\makebox[0.2\textwidth]{\raisebox{-1ex}{\hspace*{14ex}\includegraphics[width=0.1\textwidth]{Figures/png/HKA_Logo.png}}}
+	\makebox[0.2\textwidth]{\raisebox{-1ex}{\hspace*{8ex}\includegraphics[width=0.1\textwidth]{Figures/png/HKA_Logo.png}}}
+}  % Kopfzeile rechts
+\renewcommand{\headrulewidth}{0.4pt} % Upper dividing line
+%\fancyfoot[L]{\today}
+\fancyfoot[C]{\ThesisTitleShort} 
+%\fancyfoot[R]{Seite \thepage ~von \ref{TotPages}}  % Page number
+\fancyfoot[R]{\thepage} % Page number 
+\renewcommand{\footrulewidth}{0.4pt} % Lower dividing line
+\setlength{\mytopmargin}{\totalheightof{\usebox\headbox} +2cm}
+
+%% Difference between even/odd pages
+%\fancyhead[OR]{} % "O" stands for "odd", i.e. odd sides
+%\fancyhead[ER]{} % "E" for "even", i.e. straight sides
+
+
+
+%%%%% HKA CI colours %%%%%
+%% CI-Colour HKA MMT-Blue
+\definecolor{HKA_MMTblue}{RGB}{58, 104, 170}
+
+
+%% Color section titles according to CI colors
+\usepackage{titlesec}
+\titleformat{\section}
+{\color{HKA_MMTblue}\normalfont\Large\bfseries} %Titel
+{\color{HKA_MMTblue}\thesection}{1em}{}
+\titleformat{\subsection}
+{\color{HKA_MMTblue}\normalfont\large\bfseries} %Titel
+{\color{HKA_MMTblue}\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\color{black}\normalfont\bfseries} %Titel
+{\color{black}\thesubsection}{0.5em}{}
+
+
+%%%%% modern BibLaTeX with biber for bibliography %%%%%
+% https://golatex.de/viewtopic.php?t=13917
+\usepackage[style=ieee, backend=biber, sorting=none, natbib=true]{biblatex}
+%\usepackage[style=ieee-alphabetic,backend=biber, natbib=true]{biblatex}
+%\usepackage[sorting=none, style=numeric,backend=biber, natbib=true]{biblatex}
+%\usepackage[style=apa, backend=biber, natbib=true, sorting=nyt, sortcites=false]{biblatex}
+%\usepackage[style=numeric, backend=biber, natbib=true, sorting=nyt, sortcites=false]{biblatex}
+%\usepackage[ style=numeric, backend=biber, natbib=true]{biblatex}
+
+\addbibresource{bibliography.bib}
+
+% Always show short author if available
+\makeatletter
+\def\cbx@apa@ifnamesaved{\@firstoftwo}
+\makeatother
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% the actual document begins here %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\begin{document}
+	%% Integrate settings
+	\input{TeXFiles/000_Settings}
+	\sloppy % Avoid formatting overhangs at the end of lines
+	% https://latexref.xyz/_005cfussy-_0026-_005csloppy.html
+
+	\frenchspacing  % A space after the end of a sentence
+	%https://texwelt.de/fragen/1154/was-ist-french-spacing-was-macht-frenchspacing
+
+	%Default is \flushbottom, which means all sides are stretched so that they are the same height
+	%\raggedbottom   
+
+
+	%% Set German according to the new spelling rules as the default language for the document
+	\ifdefined\ThesisLanguageIsEnglish
+		\selectlanguage{american}
+	\else
+		\selectlanguage{ngerman} % ngerman, american
+	\fi
+	%
+
+	%\renewcommand*{\bibname}{new name}
+	%\setbibpreamble{}
+
+	%% Set numbering depth
+	% 2: to subsection (standard)
+	% 3: to subsubsection
+	\setcounter{secnumdepth}{2} % sets the numbering depth
+
+
+	% Display page without headers and footers
+	%\renewcommand{\thepage}{\Roman{page}}
+	\pagestyle{plain} 
+
+	%\listoftodos[ToDo's]
+	
+
+	% The title page and, if applicable, the embargo notice are included here
+	\input{TeXFiles/001_Titlepage}
+	\input{TeXFiles/002_NDNotice}
+	\newpage
+
+
+	%% Since we created the title manually, the following command is omitted
+	% \maketitle
+
+	% \clearpage
+
+	%\pagestyle{headings} 
+	\pagestyle{fancy}   % Display page with headers and footers
+	\pagenumbering{roman}  % Switch to page numbers in Roman numerals
+
+
+	%% Create directories
+	% Table of content
+	\tableofcontents
+	\newpage
+	% Table of Figures
+	\listoffigures
+	\newpage
+	% Table of tables
+	\listoftables
+	% Glossary
+	\ifdefined\ThesisLanguageIsEnglish
+		\printglossary[title=Glossary, toctitle=Glossary]
+	\else
+	%		\printglossary[title=Glossar, toctitle=Glossar]
+		\printglossaries
+	\fi
+	% Acronyms
+	\input{TeXFiles/004_Acronyms}
+	
+	\clearpage
+	
+	%% Switch to page numbers in Arabic format
+	\pagenumbering{arabic}
+	
+	
+	%% Integrating the files for the individual sections
+	% If you use \include instead of \input, new sections always start on a new page
+
+	\fancyfoot[R]{\thepage}  % Page number on
+	
+	% \input{TeXFiles/010_Kurzfassung}
+	\input{TeXFiles/010_Einleitung}
+	\input{TeXFiles/020_Datensatz}
+	\input{TeXFiles/030_CNN_Eigenentwicklung}
+	\input{TeXFiles/040_TransferLearning}
+	\input{TeXFiles/050_Lokalisierung_Lesbarkeit}
+	\input{TeXFiles/060_Fazit}
+
+	\begin{appendix}
+		\input{TeXFiles/110_Anhang}
+	\end{appendix}
+	
+	\clearpage
+
+	%% If you want to change the bibliography heading, you can do so by using the following line
+	\renewcommand*{\refname}{Literaturverzeichnis}
+
+	%\bibliographystyle{plain} % Numbers in square brackets
+	%%\bibliographystyle{alpha} % Initials of first author and year
+
+	% If you want to use the following style, you must activate
+	% \usepackage{harvard} % before \begin{document}
+	%\bibliographystyle{agsm} % Authors in round brackets
+	%\newpage
+	\clearpage
+	\phantomsection % Otherwise incorrect linking in the table of contents
+	\printbibliography[heading=bibintoc]    % Without chapter number/letter
+	
+	%\printbibliography[heading=bibnumbered]    % With chapter number/letter
+	
+	\input{TeXFiles/120_Declaration}
+\end{document}
+
+%% End of File

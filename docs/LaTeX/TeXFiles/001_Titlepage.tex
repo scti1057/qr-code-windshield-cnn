@@ -1,0 +1,100 @@
+%*******************************************************
+% Titlepage
+%*******************************************************
+%%%
+%%% title page (german)
+%%%
+\thispagestyle{empty}
+\pdfbookmark[0]{Titelblatt}{title}
+
+\begin{titlepage}
+	
+	% Fra-UAS Logo
+	\vspace*{-2,5cm}
+  	\begin{center}
+    		\includegraphics[width=7.7cm]{Figures/png/HKA_Logo.png} \\ 
+  	\end{center}
+
+	% Name FH und Fakultaet
+  	\begin{center}
+		\vspace{0.1cm}
+		\LARGE \textbf{\University}\\
+		\vspace{0.4cm}
+		\Large -- \Faculty --
+	\end{center}
+	
+	\vfill
+	
+	% Titel (--> Bitte in TeXFiles/000_Settings eintragen)
+	\begin{center}
+		\huge \textbf{\ThesisTitle}\\
+		\vspace{0.4cm}
+		\LARGE \ThesisSubtitle
+	\end{center}
+	
+	\vfill
+	
+	% Untertitel (--> Bitte in TeXFiles/000_Settings eintragen)
+	\ifdefined\ThesisLanguageIsEnglish
+		\begin{center}
+			\Large Project documentation for\\
+			\vspace{0.3cm}
+			\Large \Subject
+		\end{center}
+	\else
+		\begin{center}
+			\Large Projektdokumentation zum\\
+			\vspace{0.3cm}
+			\Large \Subject   %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+		\end{center}
+	\fi
+	
+	\vfill
+	
+	% Datum, Name, Matrikelnummer (--> Bitte in TeXFiles/000_Settings eintragen)
+	\ifdefined\ThesisLanguageIsEnglish 
+  		\begin{center}
+    			\Large submitted on \ThesisDeliveryDate\ on\\
+    			\vspace{0.3cm}
+    			\Large \textbf{\NameA}\\
+    			\vspace{0.3cm}
+    			\normalsize Student ID: \StudentIdA
+  		\end{center}
+  	\else
+		\begin{center}
+			\Large vorgelegt am~\ThesisDeliveryDate~von\\
+			\vspace{0.3cm}
+			\Large \textbf{\NameA} (\StudentIdA)\\
+			\vspace{0.3cm}
+			\Large \textbf{\NameB} (\StudentIdB)\\
+		\end{center}
+  	\fi
+	
+	\vfill
+	
+	% Betreuer (--> Bitte in TeXFiles/000_Settings eintragen)
+	\ifdefined\ThesisLanguageIsEnglish 
+		\begin{center}
+			\begin{tabular}{lll}
+				First Supervisor    & : & \Supervisor \\     %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+				Second Supervisor & : & \CoSupervisor\\    %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+			\end{tabular}
+		\end{center}
+	\else
+		\begin{center}
+			\begin{tabular}{lll}
+				Erstprüfer    		& : & \Supervisor \\     %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+				% Zweitprüfer			& : & \CoSupervisor\\    %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+				% Projektkoordinator	& : & \CompSupervisor\\    %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+				\ifdefstring{\CompanyName}{NoCompanyInvolved}{}{
+					Betreuer Fa. \CompanyName 	& : & \CompSupervisor\\    %%%%% >>>>> Bitte in TeXFiles/000_Settings eintragen
+				}
+			\end{tabular}
+		\end{center} 
+	\fi
+	
+	\newpage
+	
+\end{titlepage}
+ 
+ %% End of File
