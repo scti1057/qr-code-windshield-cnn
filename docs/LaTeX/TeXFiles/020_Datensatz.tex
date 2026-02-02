@@ -3,12 +3,45 @@
 
 \section{Dateneigenschaften}
 \label{sec:dateneigenschaften}
-% Anforderung: Ursprung (selbst, ilias, www), Dimensionen, Anzahl und Verteilungen der Klassen, Split (Test/Train/Val)
+Die Datengrundlage für dieses Projekt bilden selbst gesammelte Bilder, die das Szenario in einer Waschanlage simulieren. Dabei wurden Aufnahmen unter verschiedenen Bedingungen (Nässe, Spiegelungen, Verschmutzungen) erstellt, um die Robustheit des Systems zu gewährleisten.
+
+\todo[inline]{Patch-Generierung beschreiben, bzw. auf Bildvorverarbeitung verweisen und dass dementsprechend die Patches ausgewählt und diese dann klassifiziert wurden.}
+
+Der Datensatz besteht aus insgesamt~\todo{ANZAHL GESAMT} Bildern (Patches). Diese wurden in zwei Klassen unterteilt:
+\begin{itemize}
+    \item \textbf{\ac{QR}}: Bilder, die einen \ac{QR}-Code enthalten (\todo{ANZAHL \ac{QR}} Bilder).
+    \item \textbf{no\_\ac{QR}}: Bilder ohne \ac{QR}-Code, die als Negativbeispiele dienen (\todo{ANZAHL NO\_\ac{QR}} Bilder).
+\end{itemize}
+
+Für das Training und die Evaluierung des neuronalen Netzes wurden die Daten in drei Teilmengen aufgeteilt. Um die Reproduzierbarkeit zu gewährleisten, wurde hierfür ein fester Random Seed (42) verwendet. Die Aufteilung erfolgt im Verhältnis:
+\begin{itemize}
+    \item \textbf{Training:} 80\% der Daten
+    \item \textbf{Validierung:} 10\% der Daten
+    \item \textbf{Test:} 10\% der Daten
+\end{itemize}
+
+Die Eingangsbilder für das \ac{CNN} haben eine feste Dimension von $265 \times 265$ Pixeln.
 
 \section{Bildvorverarbeitung}
 \label{sec:bildvorverarbeitung}
-% Anforderung: Beschreibung der Vorverarbeitungsschritte
+Da die aufgenommenen Rohbilder oft hochauflösend sind und der \ac{QR}-Code nur einen kleinen Teil des Bildes einnimmt, ist eine Vorverarbeitung notwendig, um relevante Bildausschnitte (Patches) zu extrahieren. Dieser Prozess stellt sicher, dass das neuronale Netz mit fokussierten Daten trainiert wird.
+
+Die Vorverarbeitungspipeline umfasst folgende Schritte:
+\begin{enumerate}
+    \item \textbf{\ac{RoI}-Detektion:} Ein speziell entwickelter Algorithmus analysiert das Bild auf Strukturen, die für \ac{QR}-Codes typisch sind. Hierbei werden Kanten mittels Sobel-Filter extrahiert und die Anisotropie berechnet, um Bereiche mit parallelen Kantenstrukturen zu identifizieren.
+    \item \textbf{Scoremap und Filterung:} Basierend auf den Kanteninformationen wird eine Scoremap erstellt. Mittels \ac{NMS} werden die vielversprechendsten Kandidatenbereiche ausgewählt.
+    \item \textbf{Patch-Extraktion:} Um die identifizierten Zentren werden quadratische Ausschnitte (Patches) der Größe $265 \times 265$ Pixel ausgeschnitten. Diese Patches dienen als direkter Input für das \ac{CNN}.
+\end{enumerate}
 
 \section{Data Augmentation}
 \label{sec:augmentation}
-% Anforderung: Verwendete Dataaugmentation
+Um die Generalisierungsfähigkeit des Modells zu erhöhen und einer Überanpassung (Overfitting) entgegenzuwirken, werden verschiedene Data-Augmentation-Techniken angewendet. Dies ist besonders wichtig, um die in der Aufgabenstellung beschriebenen widrigen Umgebungsbedingungen zu simulieren.
+
+Folgende Augmentierungen kommen zum Einsatz:
+\begin{itemize}
+    \item \textbf{Rotation:} Drehung der Bilder im Bereich von $0^\circ$ bis $360^\circ$, da die \ac{QR}-Codes in beliebiger Orientierung hinter der Scheibe liegen können.
+    \item \textbf{Perspektivische Transformation:} Anwendung mit einer Wahrscheinlichkeit von 25\%, um unterschiedliche Kamerawinkel zu simulieren.
+    \item \textbf{Motion Blur:} Bewegungsunschärfe mit einer Wahrscheinlichkeit von 25\%, um unscharfe Aufnahmen nachzubilden.
+    \item \textbf{Helligkeit und Kontrast:} Anpassung um jeweils $\pm 20\%$, um variierende Lichtverhältnisse abzudecken.
+    \item \textbf{Horizontaler Flip:} Spiegelung der Bilder mit einer Wahrscheinlichkeit von 20\%.
+\end{itemize}
