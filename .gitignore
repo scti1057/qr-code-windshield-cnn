@@ -27,3 +27,20 @@ wandb/
 scripts/*_runs*.py
 scripts/debug_*.py
 
+# Ignore LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.sty
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.ist
+*.bbl-SAVE-ERROR
+*.run.xml
