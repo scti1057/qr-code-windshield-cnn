@@ -5,6 +5,12 @@ import csv
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
+from datetime import datetime
+try:
+    import yaml  # type: ignore
+except Exception:
+    yaml = None
+
 
 import matplotlib.pyplot as plt
 
@@ -102,6 +108,93 @@ def summarize_run(run_dir: Path) -> Optional[Dict]:
         "test_loss": test_loss,
         "test_acc": test_acc,
     }
+
+
+def read_text_if_exists(path: Path) -> Optional[str]:
+    if not path.exists():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def read_json_if_exists(path: Path) -> Optional[dict]:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def read_yaml_if_exists(path: Path) -> Optional[object]:
+    """
+    Returns:
+      - dict/list if PyYAML is available and parse succeeds
+      - raw text string if not parseable / PyYAML missing
+      - None if file missing
+    """
+    txt = read_text_if_exists(path)
+    if txt is None:
+        return None
+    if yaml is None:
+        return txt  # fallback: keep full content
+    try:
+        return yaml.safe_load(txt)
+    except Exception:
+        return txt  # fallback: keep full content
+
+
+def write_summary_json(runs: List[Dict], out_json: Path):
+    """
+    Create a detailed JSON that contains, for each run:
+      - config_used.yaml content (parsed if possible)
+      - final_metrics.json content
+      - full metrics.csv rows (every epoch)
+      - plus some derived summary values already computed by summarize_run()
+    """
+    payload = {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "num_runs": len(runs),
+        "runs": [],
+    }
+
+    for r in runs:
+        run_dir = Path(r["run_dir"])
+
+        config_used_path = run_dir / "config_used.yaml"
+        final_metrics_path = run_dir / "final_metrics.json"
+        metrics_path = run_dir / "metrics.csv"
+
+        run_entry = {
+            "run_name": r["run_name"],
+            "run_dir": str(run_dir),
+
+            # include the already-computed summary values
+            "summary": {
+                "best_val_loss": r["best_val_loss"],
+                "best_val_loss_epoch": r["best_val_loss_epoch"],
+                "best_val_acc": r["best_val_acc"],
+                "best_val_acc_epoch": r["best_val_acc_epoch"],
+                "final_epoch": r["final_epoch"],
+                "final_train_loss": r["final_train_loss"],
+                "final_val_loss": r["final_val_loss"],
+                "final_train_acc": r["final_train_acc"],
+                "final_val_acc": r["final_val_acc"],
+                "test_loss": r["test_loss"],
+                "test_acc": r["test_acc"],
+            },
+
+            # include full inputs/outputs
+            "config_used": read_yaml_if_exists(config_used_path),
+            "final_metrics": read_json_if_exists(final_metrics_path),
+
+            # full per-epoch rows (exactly what is in metrics.csv)
+            "metrics_rows": read_metrics_csv(metrics_path) if metrics_path.exists() else None,
+        }
+
+        payload["runs"].append(run_entry)
+
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def find_runs(runs_dir: Path) -> List[Path]:
@@ -227,6 +320,9 @@ def main():
         summaries.sort(key=lambda r: r["best_val_loss"])
     else:
         summaries.sort(key=lambda r: r["best_val_acc"], reverse=True)
+
+    # write detailed JSON
+    write_summary_json(summaries, out_dir / "summary.json")
 
     # write tables
     write_summary_csv(summaries, out_dir / "summary.csv")

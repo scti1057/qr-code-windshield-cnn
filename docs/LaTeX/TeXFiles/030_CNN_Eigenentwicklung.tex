@@ -2,13 +2,146 @@
 \label{ch:cnn_eigen}
 
 \section{Netzarchitektur}
-\label{sec:architektur_eigen}
-% Anforderung: Aufbau des Netzes (Schichten, Neuronen, Filtergrößen)
+\label{sec:cnn_architektur}
+
+Für die binäre Klassifikation (\glqq QR-Code\grqq{} vs. \glqq kein QR-Code\grqq{}) wurde ein eigenes, bewusst schlankes \ac{CNN} (\texttt{tinyqrnet\_v1}) implementiert. Als Eingabe dienen die in Kapitel~\ref{ch:datengrundlage} beschriebenen Patches der Größe $265\times265$ Pixel (RGB). Das Netz liefert genau einen Logit-Wert, der über eine Sigmoid-Funktion als Wahrscheinlichkeit interpretiert wird; für die Klassifikation wird ein Schwellenwert von $0{.}5$ verwendet.
+
+Die Architektur ist in vier Stages aufgebaut. Jede Stage besteht aus mehreren Convolution-Blöcken (Conv $\rightarrow$ Aktivierung $\rightarrow$ optional BatchNorm), gefolgt von einem Downsampling per MaxPooling. Mit jeder Stage wird die Kanalanzahl verdoppelt (Start mit \texttt{base\_channels=32}). Am Ende folgt Global Average Pooling, Dropout und ein linearer Klassifikationskopf:
+\begin{listNorm}
+    \item \textbf{Features:} gestufte Faltungspyramide (mehrere Blöcke pro Stage) mit MaxPooling,
+    \item \textbf{Pooling:} Adaptive Global Average Pooling auf $1\times1$,
+    \item \textbf{Regularisierung:} Dropout (Baseline: $p=0{.}2$),
+    \item \textbf{Head:} Linear Layer auf einen Output (Logit).
+\end{listNorm}
+
+Die Motivation für dieses Design war ein kontrollierbarer, gut verständlicher \glqq From-Scratch\grqq{}-Ansatz: Die Architektur ist klein genug, um viele Trainingsläufe durchführen zu können, aber gleichzeitig ausdrucksstark genug, um kanten- und musterbasierte Strukturen (typisch für \ac{QR}-Codes) zu lernen.
 
 \section{Hyperparameter und Optimierung}
-\label{sec:hyperparameter_eigen}
-% Anforderung: Überblick über verwendete und veränderte Hyperparameter (Epochen, Batchsize, LR, Optimizer, Loss, etc.)
+\label{sec:cnn_hyperparameter}
+
+\subsection{Baseline-Konfiguration und Config-Workflow}
+\label{subsec:cnn_baseline_config}
+
+Als Ausgangspunkt wurde eine Baseline-Konfiguration definiert (\texttt{baseline.yaml}). Praktisch war dabei insbesondere, dass wir alle Trainingsläufe über eine gemeinsame Baseline gestartet haben und anschließend gezielt einzelne Parameter per Override-Konfiguration überschrieben wurden. Dadurch blieb der Vergleich fair (nur eine Variable pro Experiment) und die Trainingsläufe waren reproduzierbar dokumentiert.
+
+Die Trainingspipeline unterstützt das Laden einer Baseline und optional mehrerer Overrides (Deep-Merge). So konnten Experimente konsistent über Kommandozeilenparameter gesteuert werden, ohne den Trainingscode für jeden Run anzupassen.
+
+\subsection{Training-Setup}
+\label{subsec:cnn_training_setup}
+
+Die Baseline wurde mit folgenden Kerneinstellungen trainiert:
+\begin{listNorm}
+    \item \textbf{Optimizer:} Adam mit Lernrate $10^{-3}$ und Weight Decay $10^{-4}$,
+    \item \textbf{Scheduler:} Cosine-Schedule,
+    \item \textbf{Loss:} Binary Cross Entropy mit Logits,
+    \item \textbf{Batch Size:} 64,
+    \item \textbf{Early Stopping:} Monitoring von \texttt{val\_loss} mit Patience 10 (max. 80 Epochen),
+    \item \textbf{Augmentierung (train):} horizontales Flippen, Rotation, Perspektive, Unschärfe, Helligkeit/Kontrast sowie JPEG-Artefakte.
+\end{listNorm}
+
+Die Augmentierungen sind eine direkte Antwort auf die erwarteten Störfaktoren im Szenario (Reflexionen, Schmutz, Nässe, Bewegungsunschärfe, Kompression). Gleichzeitig sollten sie helfen, dass das Netz nicht nur einzelne \glqq perfekte\grqq{} QR-Strukturen auswendig lernt, sondern robuste Merkmale für \ac{QR}-ähnliche Kanten-/Gittermuster entwickelt.
+
+\subsection{Untersuchte Varianten}
+\label{subsec:cnn_varianten}
+
+Auf Basis der Baseline wurden (jeweils isoliert) folgende Änderungen getestet:
+\begin{listNorm}
+    \item \textbf{Lernrate:} $3\cdot10^{-4}$ (kleiner) und $3\cdot10^{-3}$ (größer),
+    \item \textbf{Optimizer:} AdamW sowie SGD (LR $10^{-3}$),
+    \item \textbf{Batch Size:} 32,
+    \item \textbf{Aktivierung:} LeakyReLU statt ReLU,
+    \item \textbf{Modellkapazität:} breiter (\texttt{base\_channels=64}) und tiefer (\texttt{blocks\_per\_stage=[2,3,3,2]}),
+    \item \textbf{Loss:} Focal Loss statt BCE (zur stärkeren Gewichtung schwieriger Beispiele).
+\end{listNorm}
 
 \section{Ergebnisse}
-\label{sec:ergebnisse_eigen}
-% Anforderung: Kennzahlen, Konvergenz-Lossfunktionen, Accuracy für optimierte Parameter
+\label{sec:cnn_ergebnisse}
+
+\subsection{Evaluationsprotokoll}
+\label{subsec:cnn_eval_protokoll}
+
+Alle Ergebnisse in diesem Kapitel beziehen sich auf die Patch-Klassifikation. Für die finalen, vergleichbaren Läufe wurden die Daten mittels Source-basiertem Split getrennt (siehe Kapitel~\ref{ch:datengrundlage}). Der finale Split umfasst insgesamt 6136 Patches mit einer 50/50-Klassenbalance:
+\begin{listNorm}
+    \item \textbf{Train:} 4776 (2388 \texttt{qr}, 2388 \texttt{no\_qr}),
+    \item \textbf{Val:} 496 (248/248),
+    \item \textbf{Test:} 864 (432/432).
+\end{listNorm}
+Die Entscheidung erfolgt mit einem Schwellenwert von $0{.}5$ auf die Sigmoid-Wahrscheinlichkeit.
+
+\subsection{Auffällige Frühphase: Data Leakage durch Patch-Split}
+\label{subsec:cnn_leakage}
+
+In den ersten Trainingsläufen (Dezember) zeigten sich nahezu fehlerfreie Validierungs- und Testwerte. Diese Ergebnisse waren rückblickend nicht plausibel, weil die Aufgabe im realen Szenario deutlich durch Spiegelungen, Schmutz, Schaum und Hintergrundstrukturen erschwert wird.
+
+Die Ursache lag in einer ungeeigneten Split-Strategie: Der Split wurde patch-basiert erzeugt. Dadurch konnten Patches, die aus demselben Ursprungsbild stammen (und sich oft stark ähneln), gleichzeitig in Training, Validierung und Test landen. Das Modell profitierte somit von sehr ähnlichen Bildinhalten in allen Splits (\glqq auswendig lernen\grqq{}), was die Kennzahlen künstlich aufgebläht hat.
+
+Tabelle~\ref{tab:cnn_leaky_runs} zeigt diese frühe Phase exemplarisch. Die Werte sind dokumentiert, werden aber nicht als belastbare Generalisierungsleistung interpretiert.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\hline
+Run (Datum) & Stop-Ep. & Best-Ep. & Val-Acc [\%] & Test-Acc [\%] \\
+\hline
+17.12 Baseline & 32 & 22 & 100.0 & 93.7 \\
+17.12 LR $3\cdot10^{-4}$ & 39 & 29 & 100.0 & 96.9 \\
+21.12 Baseline & 80 & 70 & 100.0 & 99.8 \\
+\hline
+\end{tabular}
+\caption{Frühe Trainingsläufe mit auffällig hohen Validierungs-/Testwerten (vor Korrektur der Split-Strategie).}
+\label{tab:cnn_leaky_runs}
+\end{table}
+
+\subsection{Leakage-freier Vergleich (finale Baseline ab 05.01.)}
+\label{subsec:cnn_clean_results}
+
+Nach Umstellung auf einen Source-basierten Split wurden alle Varianten erneut trainiert. Die Test-Accuracy fiel dabei erwartungsgemäß deutlich niedriger aus und bewegte sich (je nach Konfiguration) im Bereich von ca. 83--86\%. Diese Größenordnung ist im Kontext der schwierigen Negativbeispiele (z.\,B. Blätter, Zettel, starke Kanten im Hintergrund) deutlich plausibler.
+
+Tabelle~\ref{tab:cnn_runs_clean} fasst die vergleichbaren Runs zusammen. \textit{Stop-Ep.} entspricht dem durch Early Stopping erreichten Abbruchzeitpunkt; \textit{Best-Ep.} ist die Epoche mit minimaler \texttt{val\_loss}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\hline
+Experiment & Änderung & Stop-Ep. & Best-Ep. & Val-Acc [\%] & Test-Acc [\%] \\
+\hline
+Baseline & -- & 40 & 30 & 99.6 & 85.9 \\
+LR $3\cdot10^{-4}$ & kleinere Schrittweite & 31 & 21 & 99.6 & 86.0 \\
+LR $3\cdot10^{-3}$ & größere Schrittweite & 54 & 44 & 99.2 & 85.2 \\
+Focal Loss & alternative Loss & 20 & 10 & 98.6 & 85.0 \\
+Batch Size 32 & kleinere Batches & 20 & 10 & 93.3 & 83.1 \\
+LeakyReLU & Aktivierung & 13 & 3 & 98.4 & 85.9 \\
+Width 64 & breiteres Modell & 23 & 13 & 93.3 & 84.7 \\
+Deeper 2-3-3-2 & tieferes Modell & 14 & 4 & 89.3 & 83.9 \\
+AdamW & anderer Optimizer & 20 & 10 & 89.7 & 85.9 \\
+SGD (LR $10^{-3}$) & klassischer Optimizer & 20 & 10 & 98.2 & 83.7 \\
+\hline
+\end{tabular}
+\caption{Leakage-freier Vergleich der CNN-Varianten (Split nach Source-ID; Patch-Level Klassifikation).}
+\label{tab:cnn_runs_clean}
+\end{table}
+
+\subsection{Interpretation und kritische Einordnung}
+\label{subsec:cnn_interpretation}
+
+\textbf{(1) Kleine Unterschiede sind statistisch kaum belastbar.}
+Der Testsplit umfasst 864 Patches. Bei einer Accuracy um 86\% entspricht das grob einer Unsicherheit im Bereich von wenigen Prozentpunkten. Entsprechend sind Unterschiede wie 85.9\% vs. 86.0\% nicht als \glqq echte\grqq{} Überlegenheit zu bewerten, sondern eher als Messrauschen durch den relativ kleinen, source-basierten Testsplit.
+
+\textbf{(2) Generalisierungslücke: Val sehr hoch, Test deutlich niedriger.}
+Mehrere Runs erreichen auf der Validierung nahezu perfekte Werte, während die Testleistung deutlich abfällt. Das deutet darauf hin, dass die Validierung (nur wenige Sources) nicht alle schwierigen Varianten abdeckt, die im Test auftreten. Für eine noch robustere Modellwahl wäre hier ein größerer und diverser Validierungssplit (oder Source-basierte Cross-Validation) sinnvoll.
+
+\textbf{(3) Modellkapazität erhöhen hilft nicht automatisch.}
+Breitere/tiefere Varianten (Width 64, Deeper 2-3-3-2) brechen teils sehr früh per Early Stopping ab und liefern keine bessere Testleistung. Das passt zu der Erwartung, dass bei begrenzter Datenmenge zusätzliche Kapazität schnell zu instabilerem Training bzw. Overfitting führen kann.
+
+\textbf{(4) Optimizer- und LR-Varianten liefern nur moderate Effekte.}
+Die Reduktion der Lernrate auf $3\cdot10^{-4}$ war im Mittel leicht positiv, während $3\cdot10^{-3}$ tendenziell schlechter abschnitt. SGD blieb in dieser Konfiguration hinter Adam/AdamW zurück (hier wären Momentum, LR-Tuning und Scheduler-Anpassungen vermutlich notwendig, um fair zu vergleichen).
+
+\textbf{(5) Focal Loss ist hier kein klarer Vorteil.}
+Obwohl Focal Loss auf der Validierung sehr gute Loss-Werte erreicht, verbessert sich die Test-Accuracy nicht sichtbar. Bei bereits balancierten Klassen kann Focal Loss zudem stärker auf Ausreißer fokussieren, was die Generalisierung nicht zwingend erhöht.
+
+\subsection{Zwischenfazit}
+\label{subsec:cnn_fazit}
+
+Als praktikabler Standard für den weiteren Projektverlauf wurde die finale Baseline (bzw. äquivalent die LR-$3\cdot10^{-4}$-Variante) verwendet. Insgesamt zeigt sich: Der größte \glqq Hebel\grqq{} für glaubwürdige Ergebnisse lag nicht in einer aggressiven Modelländerung, sondern in einer korrekten, source-basierten Evaluierung ohne Data Leakage. Die erreichten ca. 83--86\% Patch-Test-Accuracy sind für das schwierige Szenario plausibel, markieren aber auch klare Grenzen eines From-Scratch-\ac{CNN} auf begrenzter Datenbasis. Genau aus diesem Grund wird im nächsten Kapitel Transfer Learning als Alternative untersucht.

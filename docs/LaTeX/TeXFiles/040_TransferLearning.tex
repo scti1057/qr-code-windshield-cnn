@@ -1,10 +1,78 @@
 \chapter{Transfer Learning}
-\label{ch:transfer}
+\label{ch:transferlearning}
 
 \section{Untersuchte Modelle}
-\label{sec:modelle_transfer}
-% Anforderung: 3 verschiedene Modelle testen
+\label{sec:transfer_modelle}
+
+Während in Kapitel~\ref{ch:cnn_eigen} eine eigene \ac{CNN}-Architektur von Grund auf trainiert wurde, untersucht dieses Kapitel Transfer Learning als zweiten Ansatz. Grundidee ist, ein bereits auf einer großen Bilddatenbasis (z.\,B. ImageNet) vortrainiertes Netz als Feature-Extraktor zu nutzen und lediglich einen kleinen Klassifikationskopf für die Zielaufgabe (\ac{QR} vs. kein \ac{QR}) nachzutrainieren. Dies ist insbesondere dann attraktiv, wenn (i) die Ziel-Datenmenge begrenzt ist und (ii) die relevanten Muster im Bild klein und lokal sind, wie es bei unseren \ac{QR}-Patches der Fall ist.
+
+Für das Projekt wurden drei etablierte Backbones ausgewählt, die ein gutes Verhältnis zwischen Rechenaufwand und Erkennungsleistung bieten und in der Praxis häufig als Baselines eingesetzt werden:
+
+\begin{itemize}
+    \item \textbf{MobileNetV3-Large:} Ein für mobile Hardware optimiertes Netz, das durch eine Kombination aus Architektur-Suche und gezielten Design-Entscheidungen auf niedrige Latenz bei gleichzeitig guter Genauigkeit ausgelegt ist \cite{howard2019mobilenetv3}. Diese Eigenschaft ist für ein potenzielles Echtzeit-Szenario (Waschanlage, begrenzte Rechenressourcen) besonders relevant.
+    \item \textbf{EfficientNet-B0:} EfficientNet verwendet eine systematische Skalierung (Tiefe, Breite und Auflösung) und erzielt dadurch hohe Genauigkeit bei vergleichsweise geringem Modell- und Rechenbudget \cite{tan2019efficientnet}. Gerade für kleine Datensätze ist außerdem vorteilhaft, dass EfficientNet-Varianten in vielen Aufgaben zuverlässig transferieren.
+    \item \textbf{ResNet18:} ResNet18 dient als robuste, leichtgewichtige Referenz-Architektur. Im Vergleich zu sehr kompakten Mobile-Backbones ist ResNet18 häufig weniger sensitiv gegenüber Hyperparameter-Einstellungen und bietet damit eine solide Vergleichsbasis.
+\end{itemize}
+
+\section{Training-Setup}
+\label{sec:transfer_setup}
+
+Die Transfer-Experimente wurden auf demselben Patch-Datensatz und derselben Split-Datei wie die finalen Trainings des eigenen \ac{CNN} durchgeführt (Gruppierung nach Ursprungsbildern; vgl. Kapitel Datengrundlage). Damit bleiben Datengröße, Klassenbalance und die Trennung zwischen Training, Validierung und Test vergleichbar.
+
+Da die vortrainierten Backbones typischerweise eine Eingangsauflösung von $224\times224$ erwarten, wurden die Patches hierfür auf $224\times224$ skaliert. Zusätzlich wurde mit den üblichen ImageNet-Normalisierungsparametern gearbeitet (Mean/Std). Als Klassifikationskopf wurde ein kleiner Head mit einem einzelnen Logit (Binary Classification) eingesetzt.
+
+Um die Stabilität beim Fine-Tuning zu erhöhen, wurde der Backbone zunächst \textit{gefreezed} und nur der Head trainiert (Warmup-Phase). Anschließend wurde der Backbone mit deutlich kleinerer effektiver Lernrate weiteroptimiert. Als Optimierer kam AdamW zum Einsatz, wobei Early Stopping über den Validierungs-Loss aktiv war. Die Datenaugmentation (u.\,a. zufällige Rotation, Perspektive, Blur, Helligkeit/Kontrast und JPEG-Artefakte) wurde analog zu den vorherigen Experimenten genutzt, um die Robustheit gegenüber realen Störeinflüssen (Reflexionen, Schmutz, Schaum, Bewegungsunschärfe) zu erhöhen.
 
 \section{Vergleich und Ergebnisse}
-\label{sec:ergebnisse_transfer}
-% Anforderung: Geänderte Hyperparameter und Kennzahlen für alle 3 Netze
+\label{sec:transfer_ergebnisse}
+
+Abbildung~\ref{fig:transfer_train_loss_overlay} und Abbildung~\ref{fig:transfer_val_acc_overlay} zeigen exemplarisch den Trainingsverlauf im Vergleich zu ausgewählten Trainings der eigenen \ac{CNN}-Entwicklung. Visuell deutlich ist, dass die Transfer-Modelle sehr schnell zu niedrigen Loss-Werten konvergieren, während die From-Scratch-Trainings (insbesondere die finale Baseline) deutlich langsamer und mit höherem Loss-Niveau lernen. Dieses Verhalten ist erwartbar: Der vortrainierte Backbone liefert von Beginn an brauchbare Merkmalsrepräsentationen, sodass der Head die Entscheidung \ac{QR}/No-\ac{QR} mit wenigen Epochen adaptieren kann.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Figures/png/overlay_train_loss.png}
+    \caption{Überlagerung des Trainings-Loss: Transfer-Modelle erreichen bereits nach wenigen Epochen sehr niedrige Loss-Werte, während die From-Scratch-Trainings deutlich langsamer konvergieren.}
+    \label{fig:transfer_train_loss_overlay}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.95\linewidth]{Figures/png/overlay_val_acc.png}
+    \caption{Überlagerung der Validierungs-Accuracy: In den Transfer-Läufen wird sehr schnell eine hohe Validierungsleistung erreicht. Für die Interpretation ist wichtig, dass eine perfekte Validierungs-Accuracy aufgrund der begrenzten Validierungsmenge nicht automatisch eine perfekte Generalisierung garantiert.}
+    \label{fig:transfer_val_acc_overlay}
+\end{figure}
+
+Tabelle~\ref{tab:transfer_results} fasst die wichtigsten Kennzahlen zusammen. Als Referenz wird die finale From-Scratch-Baseline (Run vom 05.01 mit angepasster Lernrate) herangezogen. Insgesamt zeigt sich:
+
+\begin{itemize}
+    \item \textbf{EfficientNet-B0} liefert die beste Test-Accuracy unter den Transfer-Modellen und verbessert die finale From-Scratch-Baseline deutlich.
+    \item \textbf{MobileNetV3-Large} erreicht ebenfalls eine klare Verbesserung gegenüber der finalen Baseline, bleibt aber hinter EfficientNet-B0 zurück.
+    \item \textbf{ResNet18} zeigt die schwächste Test-Performance der drei Transfer-Modelle. Eine plausible Erklärung ist, dass ResNet18 bei gleicher Trainingskonfiguration weniger gut mit den sehr kleinräumigen und stark variierenden Mustern in den Patches harmoniert oder stärker von den konkreten Augmentations-/Fine-Tuning-Einstellungen abhängt.
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\caption{Vergleich der Transfer-Modelle (Test-Accuracy) gegenüber der finalen From-Scratch-Baseline.}
+\label{tab:transfer_results}
+\begin{tabular}{lccc}
+\hline
+\textbf{Modell} & \textbf{Best Val-Loss} & \textbf{Final Val-Acc} & \textbf{Test-Acc} \\
+\hline
+MobileNetV3-Large (Transfer) & 0.0002 & 1.0000 & 0.937 \\
+EfficientNet-B0 (Transfer)   & 0.0004 & 1.0000 & 0.968 \\
+ResNet18 (Transfer)          & 0.0005 & 1.0000 & 0.887 \\
+\hline
+Eigene CNN Baseline (05.01, lr=3e-4) & 0.0233 & 0.9960 & 0.860 \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Kritische Einordnung}
+\label{sec:transfer_kritik}
+
+Auffällig ist, dass in mehreren Läufen sehr früh eine (nahezu) perfekte Validierungs-Accuracy erreicht wird, während die Test-Accuracy je nach Modell deutlich darunter liegt. Das ist ein Hinweis darauf, dass die Validierungsmenge bzw. deren Schwierigkeit begrenzt sein kann oder dass bestimmte Störfaktoren (z.\,B. starke Reflexionen, Schmutzcluster, sehr kleine \ac{QR}-Anteile im Patch) im Testset häufiger auftreten als im Validierungsset. Für eine belastbarere Bewertung wären daher zusätzliche Maßnahmen sinnvoll, z.\,B. (i) ein größerer und diverserer Validierungssplit, (ii) Cross-Validation auf Source-Ebene oder (iii) eine gezielte Fehleranalyse der falsch klassifizierten Test-Patches (Hard Negatives/Hard Positives).
+
+\section{Zwischenfazit}
+\label{sec:transfer_fazit}
+
+Transfer Learning ist in diesem Projekt ein sehr effektiver Weg, um mit begrenzter Datenmenge schnell robuste Merkmalsrepräsentationen zu nutzen. Besonders EfficientNet-B0 bietet im Vergleich zur finalen eigenen \ac{CNN}-Baseline eine deutlich bessere Generalisierung bei gleichzeitig sehr schneller Konvergenz. Für ein reales Deployment wäre zusätzlich zu prüfen, welches Modell den besten Kompromiss aus Genauigkeit und Inferenzzeit auf der Zielhardware bietet.
