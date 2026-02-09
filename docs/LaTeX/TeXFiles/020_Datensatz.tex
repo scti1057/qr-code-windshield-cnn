@@ -48,7 +48,7 @@ Für das Training des \ac{CNN} wurde aus den hochauflösenden Bildern ein Patch-
 
 Die Aufteilung in Trainings-, Validierungs- und Testdaten erfolgt nicht durch Kopieren in neue Ordner, sondern wird als JSON-Datei gespeichert. Dabei werden Patches nach Quellbild gruppiert, um Datenleckage zu vermeiden (ein Quellbild erscheint nicht in mehreren Splits).
 
-
+\newpage
 \section{Bildvorverarbeitung}
 \label{sec:bildvorverarbeitung}
 
@@ -70,7 +70,7 @@ Zur automatischen Erzeugung plausibler Kandidatenbereiche wird zunächst eine Sc
 \end{listNorm}
 
 Die Merkmale werden gewichtet aufsummiert und anschließend normalisiert. In frühen Tests zeigte sich, dass Hintergrundobjekte mit starken Kanten/Ecken (z.\,B. Schlüssel oder Innenraumdetails) die Score-Map dominieren können. Die Gewichtung und Schwellwerte sind daher entscheidend, um die Spezifität für \ac{QR}-Codes zu erhöhen.
-
+\newpage
 \subsection{Multi-Scale Window Search und Redundanzreduktion}
 \label{sec:roi_search}
 Aus der Score-Map werden Kandidatenfenster über mehrere Skalen bestimmt:

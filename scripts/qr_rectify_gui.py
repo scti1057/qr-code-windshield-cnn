@@ -1,4 +1,4 @@
-# scripts/qr_rectify_gui_v2.py
+# scripts/qr_rectify_gui_v4.py
 from __future__ import annotations
 
 import argparse
@@ -12,6 +12,44 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
+
+"""
+QR Rectify GUI
+
+Plan B V4 (gemäß Benchmark-Empfehlung):
+- Otsu funktioniert sehr gut -> Default
+- Morph: k=3, close=4, open=0 -> Default
+- Ziel: robust 4 Punkte (TL, TR, BR, BL)
+
+Kern:
+1) Binary (variant) -> CLOSE -> OPEN => used
+2) Auto: edge-like vs filled
+3) Edge-like: Kante -> füllen -> größter Contour -> approxPolyDP(4)
+4) Filled: Maske -> größter Contour -> optional Hull -> approxPolyDP(4)
+5) approxPolyDP: eps-sweep, wähle bestes 4-Eck per IoU(quad vs objektmaske)
+6) robuste Corner-Order (angle-sort + TL-anchor), um "Bow-tie" zu vermeiden
+
+Views wie V3:
+  1) Detected (full image)
+  2) Warp (top view)
+  3) Crop + quad
+  4) Binary raw
+  5) Morph + debug grid (inkl. mask + edges boundary)
+
+Example usage:
+
+# Minimal (funktioniert bei euch so)
+python3 scripts/qr_rectify_gui.py --input data/raw --roi-config configs/roi_tuner_params.json
+
+# Anderes Runs-Verzeichnis + bestimmter Run (0=newest)
+python3 scripts/qr_rectify_gui.py --input data/raw --roi-config configs/roi_tuner_params.json --runs-dir runs/cnn_scratch --run-index 1
+
+# Device erzwingen
+python3 scripts/qr_rectify_gui.py --input data/raw --roi-config configs/roi_tuner_params.json --device mps
+python3 scripts/qr_rectify_gui.py --input data/raw --roi-config configs/roi_tuner_params.json --device cuda
+python3 scripts/qr_rectify_gui.py --input data/raw --roi-config configs/roi_tuner_params.json --device cpu
+
+"""
 
 # ---------- repo / src layout ----------
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +100,7 @@ def load_roi_config(path: Path) -> RoiC2FConfig:
 
 
 # ============================================================
-# Model build (scratch + transfer)
+# Model build (scratch + transfer)  [wie V2/V3 considers]
 # ============================================================
 def make_activation(name: str) -> "nn.Module":
     name = (name or "relu").lower()
@@ -298,7 +336,11 @@ def patches_to_tensor(
 # Boxes + merging
 # ============================================================
 def clamp_box(x0: int, y0: int, x1: int, y1: int, w: int, h: int) -> Tuple[int, int, int, int]:
-    return max(0, x0), max(0, y0), min(w - 1, x1), min(h - 1, y1)
+    return max(0, x0), max(0, y0), min(w - 1, x1), detect_max(h - 1, y1)
+
+
+def detect_max(a: int, b: int) -> int:
+    return a if a < b else b
 
 
 def box_iou(a: Tuple[int, int, int, int], b: Tuple[int, int, int, int]) -> float:
@@ -387,19 +429,8 @@ def crop_bgr(img_bgr: np.ndarray, box: Tuple[int, int, int, int]) -> np.ndarray:
 
 
 # ============================================================
-# Quad utils + Plan A / Plan B
+# Quad utils + Plan A
 # ============================================================
-def order_quad(pts: np.ndarray) -> np.ndarray:
-    pts = np.asarray(pts, dtype=np.float32).reshape(4, 2)
-    s = pts.sum(axis=1)
-    d = pts[:, 0] - pts[:, 1]
-    tl = pts[np.argmin(s)]
-    br = pts[np.argmax(s)]
-    tr = pts[np.argmax(d)]
-    bl = pts[np.argmin(d)]
-    return np.stack([tl, tr, br, bl], axis=0)
-
-
 def quad_area(quad: np.ndarray) -> float:
     q = quad.reshape(-1, 1, 2).astype(np.float32)
     return float(abs(cv2.contourArea(q)))
@@ -431,64 +462,41 @@ def is_degenerate_quad(quad: np.ndarray, min_rel_area: float = 0.03) -> bool:
     top, right, bottom, left = side_lengths(quad)
     smin = min(top, right, bottom, left)
     smax = max(top, right, bottom, left)
-    if smin < 8.0 or (smin / (smax + 1e-6)) < 0.15:
+    if smin < 8.0 or (smin / (smax + 1e-6)) < 0.07:
         return True
     return False
 
 
-def touches_border(quad: np.ndarray, H: int, W: int, m: int = 3) -> bool:
-    return (
-        np.any(quad[:, 0] < m) or np.any(quad[:, 0] > (W - 1 - m)) or
-        np.any(quad[:, 1] < m) or np.any(quad[:, 1] > (H - 1 - m))
-    )
-
-
-def right_angle_score(quad: np.ndarray) -> float:
-    q = quad.reshape(4, 2).astype(np.float32)
-    score = 0.0
+def quad_has_4_distinct_corners(quad: np.ndarray, min_dist: float = 6.0) -> bool:
+    q = np.asarray(quad, dtype=np.float32).reshape(4, 2)
     for i in range(4):
-        p = q[i]
-        p_prev = q[(i - 1) % 4]
-        p_next = q[(i + 1) % 4]
-        v1 = p_prev - p
-        v2 = p_next - p
-        n1 = np.linalg.norm(v1) + 1e-6
-        n2 = np.linalg.norm(v2) + 1e-6
-        cos = float(np.dot(v1, v2) / (n1 * n2))  # 0 is 90 deg
-        score += max(0.0, 1.0 - min(1.0, abs(cos)))
-    return score / 4.0
+        for j in range(i + 1, 4):
+            if float(np.linalg.norm(q[i] - q[j])) < float(min_dist):
+                return False
+    return True
 
 
-def preprocess_variants(crop_bgr_img: np.ndarray) -> Dict[str, np.ndarray]:
+def order_quad_robust(pts4: np.ndarray) -> np.ndarray:
     """
-    Returns raw (before morph) 8-bit single-channel images for:
-    edges, adap, otsu, otsu_inv
+    Robuste Ordnung: angle-sort um centroid + TL anchor.
+    Verhindert Bow-ties bei symmetrischen Fällen.
     """
-    gray = cv2.cvtColor(crop_bgr_img, cv2.COLOR_BGR2GRAY)
-    gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    pts = np.asarray(pts4, dtype=np.float32).reshape(4, 2)
+    c = pts.mean(axis=0)
+    ang = np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0])
+    idx = np.argsort(ang)  # cyclic order
+    cyc = pts[idx].copy()
 
-    edges = cv2.Canny(gray_blur, 50, 160)
+    # rotate so TL (min x+y) first
+    s = cyc[:, 0] + cyc[:, 1]
+    k0 = int(np.argmin(s))
+    cyc = np.roll(cyc, -k0, axis=0)
 
-    adap = cv2.adaptiveThreshold(
-        gray_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 5
-    )
+    # ensure second is TR (should be more to the right than last which should be BL)
+    if cyc[1, 0] < cyc[3, 0]:
+        cyc = np.array([cyc[0], cyc[3], cyc[2], cyc[1]], dtype=np.float32)
 
-    _, otsu = cv2.threshold(gray_blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    _, otsu_inv = cv2.threshold(gray_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    return {"edges": edges, "adap": adap, "otsu": otsu, "otsu_inv": otsu_inv}
-
-
-def morph(img: np.ndarray, op: int, k: int, iters: int) -> np.ndarray:
-    if iters <= 0:
-        return img.copy()
-    k = int(k)
-    if k < 1:
-        k = 1
-    if k % 2 == 0:
-        k += 1
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
-    return cv2.morphologyEx(img, op, kernel, iterations=int(iters))
+    return cyc.astype(np.float32)
 
 
 def detect_qr_corners_opencv(det: cv2.QRCodeDetector, crop: np.ndarray) -> Optional[np.ndarray]:
@@ -498,123 +506,323 @@ def detect_qr_corners_opencv(det: cv2.QRCodeDetector, crop: np.ndarray) -> Optio
     pts = np.asarray(pts, dtype=np.float32).reshape(-1, 2)
     if pts.shape != (4, 2):
         return None
-    quad = order_quad(pts)
+    quad = order_quad_robust(pts)
     if is_degenerate_quad(quad):
         return None
     return quad
 
 
-@dataclass
-class PlanBResult:
-    quad: np.ndarray            # (4,2) in crop coords
-    variant: str                # edges|adap|otsu|otsu_inv
-    source: str                 # approx|rect
-    contour: np.ndarray         # contour in crop coords (N,1,2)
-    score: float
+# ============================================================
+# Plan B V4 (benchmark-driven)
+# ============================================================
+def _ensure_odd(k: int) -> int:
+    k = int(k)
+    if k < 1:
+        k = 1
+    if k % 2 == 0:
+        k += 1
+    return k
 
 
-def find_quad_robust(
-    crop_bgr_img: np.ndarray,
-    min_area_frac: float,
-    eps_fracs: Tuple[float, float, float],
-    max_ar: float,
-    # morph params used inside plan B search
-    k_close: int,
-    it_close: int,
-) -> Optional[PlanBResult]:
+def morph(img: np.ndarray, op: int, k: int, iters: int) -> np.ndarray:
+    if int(iters) <= 0:
+        return img.copy()
+    k = _ensure_odd(int(k))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
+    return cv2.morphologyEx(img, op, kernel, iterations=int(iters))
+
+
+def preprocess_variants(crop_bgr_img: np.ndarray) -> Dict[str, np.ndarray]:
+    gray = cv2.cvtColor(crop_bgr_img, cv2.COLOR_BGR2GRAY)
+    gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    edges = cv2.Canny(gray_blur, 50, 160)
+    adap = cv2.adaptiveThreshold(
+        gray_blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 5
+    )
+    _, otsu = cv2.threshold(gray_blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, otsu_inv = cv2.threshold(gray_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    return {"edges": edges, "adap": adap, "otsu": otsu, "otsu_inv": otsu_inv}
+
+
+def binarize(img: np.ndarray) -> np.ndarray:
+    if img.ndim == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)[1]
+
+
+def maybe_fix_polarity(bin_img: np.ndarray) -> np.ndarray:
     """
-    Plan B v2: searches multiple preprocessing variants. Each variant is morphed (CLOSE) with user params.
-    For each contour:
-      - approxPolyDP(4) candidates => source=approx
-      - minAreaRect candidates     => source=rect (included, but filtered/scored)
-    Returns best candidate + metadata for debugging (variant + source + contour).
+    Falls foreground viel zu groß ist, invertieren.
     """
-    H, W = crop_bgr_img.shape[:2]
-    min_area = float(H * W) * float(min_area_frac)
+    b = binarize(bin_img)
+    r = float(np.mean(b > 0))
+    if r > 0.85:
+        b = cv2.bitwise_not(b)
+    return b
 
-    best: Optional[PlanBResult] = None
 
-    variants = preprocess_variants(crop_bgr_img)
+def iou_binary(a: np.ndarray, b: np.ndarray) -> float:
+    aa = (a > 0)
+    bb = (b > 0)
+    inter = float(np.logical_and(aa, bb).sum())
+    union = float(np.logical_or(aa, bb).sum())
+    return 0.0 if union <= 1e-9 else inter / union
 
-    for vtag, raw in variants.items():
-        work = morph(raw, cv2.MORPH_CLOSE, k_close, it_close)
 
-        cnts, _ = cv2.findContours(work, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if not cnts:
+def quad_to_mask(shape_hw: Tuple[int, int], quad: np.ndarray) -> np.ndarray:
+    H, W = shape_hw
+    m = np.zeros((H, W), dtype=np.uint8)
+    p = quad.reshape(-1, 1, 2).astype(np.int32)
+    cv2.fillPoly(m, [p], 255)
+    return m
+
+
+def best_contour_from_mask(
+    mask: np.ndarray,
+    min_area_frac: float = 0.006,
+) -> Optional[np.ndarray]:
+    """
+    Wähle "besten" Contour: groß genug, nicht zu randnah, nicht fast full-frame.
+    """
+    m = binarize(mask)
+    H, W = m.shape[:2]
+
+    cnts, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not cnts:
+        return None
+    cnts_sorted = sorted(cnts, key=cv2.contourArea, reverse=True)
+
+    for c in cnts_sorted[:15]:
+        a = float(cv2.contourArea(c))
+        if a < float(H * W) * float(min_area_frac):
             continue
+        x, y, w, h = cv2.boundingRect(c)
+        if x <= 1 or y <= 1 or (x + w) >= (W - 2) or (y + h) >= (H - 2):
+            continue
+        if a / float(H * W) > 0.93:
+            continue
+        return c
+    return None
 
-        for c in sorted(cnts, key=cv2.contourArea, reverse=True)[:50]:
-            area = float(cv2.contourArea(c))
-            if area < min_area:
-                continue
 
-            per = cv2.arcLength(c, True)
+def fill_from_edge_like(edge_bin: np.ndarray) -> np.ndarray:
+    """
+    Kante -> füllen:
+    - close/dilate minimal, dann Contour füllen.
+    """
+    e = binarize(edge_bin)
+    ker = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    e2 = cv2.morphologyEx(e, cv2.MORPH_CLOSE, ker, iterations=1)
+    e2 = cv2.dilate(e2, ker, iterations=1)
 
-            # candidates = list of (quad_points, source)
-            candidates: List[Tuple[np.ndarray, str]] = []
+    cnt = best_contour_from_mask(e2, min_area_frac=0.002)
+    H, W = e.shape[:2]
+    out = np.zeros((H, W), dtype=np.uint8)
+    if cnt is None:
+        return out
+    cv2.drawContours(out, [cnt], -1, 255, thickness=-1)
+    return out
 
-            # approx candidates
-            for eps in eps_fracs:
-                approx = cv2.approxPolyDP(c, float(eps) * per, True)
-                if len(approx) == 4 and cv2.isContourConvex(approx):
-                    candidates.append((approx.reshape(4, 2).astype(np.float32), "approx"))
 
-            # minAreaRect candidate (rect)
-            rect = cv2.minAreaRect(c)
-            (rw, rh) = rect[1]
-            rw = float(rw) if rw else 1.0
-            rh = float(rh) if rh else 1.0
-            ar = max(rw, rh) / (min(rw, rh) + 1e-6)
-            if ar <= float(max_ar):
-                candidates.append((cv2.boxPoints(rect).astype(np.float32), "rect"))
+def is_edge_like(binary: np.ndarray) -> bool:
+    """
+    Heuristik: dünne Kanten vs gefüllte Maske
+    """
+    b = binarize(binary)
+    fill_ratio = float(np.mean(b > 0))
+    # sehr dünn => edge-like
+    if fill_ratio < 0.06:
+        return True
+    # sehr dick => eher filled
+    return False
 
-            for cand_pts, src in candidates:
-                quad = order_quad(cand_pts)
 
-                # reject degeneracy
-                if is_degenerate_quad(quad, min_rel_area=0.03):
-                    continue
+def approx_quad_sweep_iou(
+    contour: np.ndarray,
+    obj_mask: np.ndarray,
+    use_hull: bool,
+    eps_min: float = 0.005,
+    eps_max: float = 0.08,
+    steps: int = 26,
+) -> Tuple[Optional[np.ndarray], float, str]:
+    """
+    Epsilon-Sweep wie im Benchmark:
+    - versuche approxPolyDP -> 4 Punkte
+    - Score = IoU(quad_mask, obj_mask)
+    - wähle bestes.
+    """
+    if contour is None or len(contour) < 4:
+        return None, 0.0, "no contour"
 
-                # reject huge "whole crop" quads
-                a_norm = quad_area(quad) / float(H * W)
-                if a_norm > 0.85:
-                    continue
+    base = cv2.convexHull(contour) if use_hull else contour
+    per = float(cv2.arcLength(base, True))
+    best_q = None
+    best_iou = -1.0
+    best_note = "no quad"
 
-                # reject crop-border quads (common false positives)
-                if touches_border(quad, H, W, m=3):
-                    continue
+    for eps in np.linspace(eps_min, eps_max, steps):
+        poly = cv2.approxPolyDP(base, eps * per, True)
+        if len(poly) != 4:
+            continue
+        if not cv2.isContourConvex(poly):
+            continue
+        q = order_quad_robust(poly.reshape(4, 2).astype(np.float32))
+        if not quad_has_4_distinct_corners(q) or is_degenerate_quad(q, min_rel_area=0.005):
+            continue
+        qm = quad_to_mask(obj_mask.shape[:2], q)
+        score = iou_binary(qm, obj_mask)
+        if score > best_iou:
+            best_iou = score
+            best_q = q
+            best_note = f"approxPolyDP(use_hull={int(use_hull)}) eps={eps:.3f} iou={score*100:.2f}%"
 
-                # scoring (bias reduced vs "perfect rectangle")
-                ang = right_angle_score(quad)
-                top, right, bottom, left = side_lengths(quad)
-                smin = min(top, right, bottom, left)
-                smax = max(top, right, bottom, left)
-                ratio = float(smin / (smax + 1e-6))
-                squareness = math.sqrt(max(0.0, min(1.0, ratio)))  # tolerant
+    return best_q, float(max(0.0, best_iou)), best_note
 
-                score = 0.65 * a_norm + 0.10 * ang + 0.25 * squareness
-                if src == "rect":
-                    score *= 0.85  # slight penalty so rect fallback doesn't dominate
 
-                if (best is None) or (score > best.score):
-                    best = PlanBResult(quad=quad, variant=vtag, source=src, contour=c.copy(), score=float(score))
+def angular_extrema_hull_quad(contour: np.ndarray) -> Optional[np.ndarray]:
+    """
+    Fallback: Angular extrema auf Hull.
+    Nimmt Punkte, die den Richtungen (NW, NE, SE, SW) am ähnlichsten sind.
+    """
+    if contour is None or len(contour) < 4:
+        return None
+    hull = cv2.convexHull(contour).reshape(-1, 2).astype(np.float32)
+    if len(hull) < 4:
+        return None
+    c = hull.mean(axis=0)
 
-    return best
+    # Richtungen in Bildkoords (x rechts, y runter):
+    dirs = np.array([
+        [-1, -1],  # NW -> TL
+        [ 1, -1],  # NE -> TR
+        [ 1,  1],  # SE -> BR
+        [-1,  1],  # SW -> BL
+    ], dtype=np.float32)
+    dirs /= (np.linalg.norm(dirs, axis=1, keepdims=True) + 1e-9)
+
+    v = hull - c[None, :]
+    v /= (np.linalg.norm(v, axis=1, keepdims=True) + 1e-9)
+
+    pts = []
+    for d in dirs:
+        proj = (v @ d.reshape(2, 1)).reshape(-1)
+        pts.append(hull[int(np.argmax(proj))])
+    q = np.stack(pts, axis=0).astype(np.float32)
+    q = order_quad_robust(q)
+    if not quad_has_4_distinct_corners(q) or is_degenerate_quad(q, min_rel_area=0.005):
+        return None
+    return q
+
+
+@dataclass
+class PlanBDebugV4:
+    variant: str
+    raw: np.ndarray
+    close_img: np.ndarray
+    open_img: np.ndarray
+    used: np.ndarray
+
+    edge_like: bool
+    obj_mask: np.ndarray  # filled object mask used for scoring
+    contour: Optional[np.ndarray]
+    hull: Optional[np.ndarray]
+
+    quad: Optional[np.ndarray]
+    quad_iou: float
+    ok: bool
+    note: str
+
+    edges_boundary: np.ndarray
+
+
+def planb_v4(
+    crop_bgr_img: np.ndarray,
+    variant: str,
+    k: int,
+    close_it: int,
+    open_it: int,
+    min_area_frac: float = 0.006,
+) -> PlanBDebugV4:
+    variants = preprocess_variants(crop_bgr_img)
+    v = variant if variant in variants else "otsu"
+    raw0 = variants[v]
+    raw = maybe_fix_polarity(raw0)
+
+    k = _ensure_odd(k)
+    close_img = morph(raw, cv2.MORPH_CLOSE, k, close_it)
+    open_img = morph(close_img, cv2.MORPH_OPEN, k, open_it)
+    used = binarize(open_img)
+
+    # auto: edge vs filled
+    edge_like = is_edge_like(used)
+
+    if edge_like:
+        obj_mask = fill_from_edge_like(used)
+        note_kind = "edge->fill"
+    else:
+        obj_mask = used.copy()
+        note_kind = "filled"
+
+    # pick contour from obj_mask (filled always)
+    contour = best_contour_from_mask(obj_mask, min_area_frac=min_area_frac)
+    hull = cv2.convexHull(contour) if contour is not None else None
+
+    # boundary image for debug
+    ker = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    edges_boundary = cv2.morphologyEx(obj_mask, cv2.MORPH_GRADIENT, ker)
+
+    if contour is None:
+        return PlanBDebugV4(
+            variant=v, raw=raw, close_img=close_img, open_img=open_img, used=used,
+            edge_like=edge_like, obj_mask=obj_mask, contour=None, hull=None,
+            quad=None, quad_iou=0.0, ok=False,
+            note=f"PlanB fail: no contour ({note_kind})",
+            edges_boundary=edges_boundary
+        )
+
+    # Benchmark: contour_approxPolyDP und hull_approxPolyDP sind top.
+    q1, iou1, n1 = approx_quad_sweep_iou(contour, obj_mask, use_hull=False, eps_min=0.004, eps_max=0.08, steps=30)
+    q2, iou2, n2 = approx_quad_sweep_iou(contour, obj_mask, use_hull=True,  eps_min=0.004, eps_max=0.08, steps=30)
+
+    quad = None
+    best_iou = -1.0
+    best_note = ""
+
+    if q1 is not None and iou1 > best_iou:
+        quad, best_iou, best_note = q1, iou1, n1
+    if q2 is not None and iou2 > best_iou:
+        quad, best_iou, best_note = q2, iou2, n2
+
+    # fallback: angular extrema on hull (knapp dahinter in deinem Benchmark)
+    if quad is None:
+        q3 = angular_extrema_hull_quad(contour)
+        if q3 is not None:
+            qm = quad_to_mask(obj_mask.shape[:2], q3)
+            best_iou = iou_binary(qm, obj_mask)
+            quad = q3
+            best_note = f"Angular_extrema_hull iou={best_iou*100:.2f}%"
+
+    ok = quad is not None
+    note = f"OK | {note_kind} | {best_note}" if ok else f"FAIL | {note_kind} | no quad"
+
+    return PlanBDebugV4(
+        variant=v, raw=raw, close_img=close_img, open_img=open_img, used=used,
+        edge_like=edge_like, obj_mask=obj_mask, contour=contour, hull=hull,
+        quad=quad, quad_iou=float(max(0.0, best_iou if best_iou >= 0 else 0.0)),
+        ok=ok, note=note,
+        edges_boundary=edges_boundary
+    )
 
 
 # ============================================================
-# "Rotation around X/Y" from quad (camera-agnostic heuristic)
+# Rotation heuristic + warp
 # ============================================================
 def clamp01(x: float) -> float:
     return max(0.0, min(1.0, x))
 
 
 def estimate_rot_xy_deg_from_quad(quad: np.ndarray) -> Tuple[float, float]:
-    """
-    rot_x: vertical perspective (top vs bottom)
-    rot_y: horizontal perspective (left vs right)
-    signed by which side appears larger.
-    """
     top, right, bottom, left = side_lengths(quad)
     r_tb = min(top, bottom) / (max(top, bottom) + 1e-6)
     rot_x = math.degrees(math.acos(clamp01(r_tb)))
@@ -625,10 +833,63 @@ def estimate_rot_xy_deg_from_quad(quad: np.ndarray) -> Tuple[float, float]:
     rot_y *= 1.0 if (right > left) else -1.0
     return rot_x, rot_y
 
+def estimate_rot_z_deg_from_quad(quad: np.ndarray) -> float:
+    """
+    In-plane Rotation (um Z): Winkel der oberen Kante TL->TR relativ zur X-Achse.
+    +x nach rechts, +y nach unten (Bildkoordinaten).
+    Wir geben den Winkel in "mathematischer" Konvention aus (CCW, y nach oben),
+    daher verwenden wir -dy.
+    """
+    tl, tr, br, bl = np.asarray(quad, dtype=np.float32).reshape(4, 2)
+    dx = float(tr[0] - tl[0])
+    dy = float(tr[1] - tl[1])
+    ang = math.degrees(math.atan2(-dy, dx))  # -dy => y-up
+    # optional normalisieren auf [-180,180)
+    if ang >= 180.0:
+        ang -= 360.0
+    if ang < -180.0:
+        ang += 360.0
+    return ang
 
-# ============================================================
-# Warping to top view (birdseye)
-# ============================================================
+
+def rotate_quad_2d_about_center(quad: np.ndarray, angle_deg: float) -> np.ndarray:
+    """
+    Rotiert Quad in der Bildebene um seinen Schwerpunkt.
+    angle_deg ist in derselben Konvention wie estimate_rot_z_deg_from_quad (y-up).
+    """
+    q = np.asarray(quad, dtype=np.float32).reshape(4, 2)
+    c = q.mean(axis=0)
+
+    a = math.radians(angle_deg)
+    ca, sa = math.cos(a), math.sin(a)
+
+    # Wir rotieren in einem Koordinatensystem mit y-up:
+    # 1) y->y_up, 2) rotieren, 3) zurück zu y-down
+    x = q[:, 0] - c[0]
+    y_up = -(q[:, 1] - c[1])
+
+    xr = ca * x - sa * y_up
+    yr_up = sa * x + ca * y_up
+
+    yr = -yr_up
+    out = np.stack([xr + c[0], yr + c[1]], axis=1).astype(np.float32)
+    return out
+
+
+def estimate_rot_xyz_deg_from_quad(quad: np.ndarray) -> Tuple[float, float, float]:
+    """
+    Liefert (rot_x, rot_y, rot_z) für dein mentales Modell:
+    - rot_z: Verdrehung in der Bildebene (Top-Kante horizontal)
+    - rot_x/rot_y: Tilt-Heuristik, aber berechnet auf dem "entzerrt-um-Z" Quad,
+      damit die Vorzeichen/Zuordnung stabiler zur Bild-X/Y-Achse passt.
+    """
+    rz = estimate_rot_z_deg_from_quad(quad)
+    q0 = rotate_quad_2d_about_center(quad, -rz)   # entdrehen: Top-Kante ~ horizontal
+    rx, ry = estimate_rot_xy_deg_from_quad(q0)    # bestehende Heuristik
+    return rx, ry, rz
+
+
+
 def warp_quad_to_square(img_bgr: np.ndarray, quad_full: np.ndarray, out_size: int = 420) -> np.ndarray:
     S = int(out_size)
     dst = np.array([[0, 0], [S - 1, 0], [S - 1, S - 1], [0, S - 1]], dtype=np.float32)
@@ -639,14 +900,14 @@ def warp_quad_to_square(img_bgr: np.ndarray, quad_full: np.ndarray, out_size: in
 
 
 # ============================================================
-# Drawing helpers / Tk helpers
+# Drawing + Tk helpers
 # ============================================================
 def draw_box(img: np.ndarray, box: Tuple[int, int, int, int], color=(255, 255, 0), thickness=3):
     x0, y0, x1, y1 = box
     cv2.rectangle(img, (x0, y0), (x1, y1), color, thickness)
 
 
-def draw_poly(img: np.ndarray, pts: np.ndarray, color=(0, 255, 0), thickness=3):
+def draw_poly(img: np.ndarray, pts: np.ndarray, color=(255, 0, 255), thickness=3):
     p = pts.reshape(-1, 1, 2).astype(np.int32)
     cv2.polylines(img, [p], isClosed=True, color=color, thickness=thickness, lineType=cv2.LINE_AA)
     for (x, y) in pts.astype(np.int32):
@@ -660,8 +921,7 @@ def gray_to_bgr(gray: np.ndarray) -> np.ndarray:
 
 
 def bgr_to_tk_photo(img_bgr: np.ndarray) -> tk.PhotoImage:
-    rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    ok, buf = cv2.imencode(".png", rgb)
+    ok, buf = cv2.imencode(".png", img_bgr)
     if not ok:
         raise RuntimeError("Failed to encode image for Tk display.")
     b64 = base64.b64encode(buf.tobytes())
@@ -669,9 +929,6 @@ def bgr_to_tk_photo(img_bgr: np.ndarray) -> tk.PhotoImage:
 
 
 def make_grid(images: List[np.ndarray], cols: int = 2, pad: int = 6, bg: int = 30) -> np.ndarray:
-    """
-    Simple grid compositor. Images will be resized to the max width/height among them.
-    """
     imgs = [im.copy() for im in images]
     hmax = max(im.shape[0] for im in imgs)
     wmax = max(im.shape[1] for im in imgs)
@@ -697,39 +954,26 @@ def make_grid(images: List[np.ndarray], cols: int = 2, pad: int = 6, bg: int = 3
 
 
 # ============================================================
-# Candidate struct (store crop and PlanB debug meta)
+# Candidate struct
 # ============================================================
 @dataclass
 class Candidate:
     idx: int
     merged: MergedROI
-    crop_box: Tuple[int, int, int, int]     # expanded union box in full coords
-    src: str                                # "A" or "B" or "none"
-    b_variant: Optional[str]                # edges|adap|otsu|otsu_inv
-    b_source: Optional[str]                 # approx|rect
-    b_score: Optional[float]
-    b_contour: Optional[np.ndarray]         # contour in crop coords
-
-    quad_crop: Optional[np.ndarray]         # (4,2) in crop coords TLTRBRBL
-    quad_full: Optional[np.ndarray]         # (4,2) in full coords
-
+    crop_box: Tuple[int, int, int, int]
+    src: str  # "A" or "B" or "none"
+    quad_crop: Optional[np.ndarray]
+    quad_full: Optional[np.ndarray]
     rot_x_deg: Optional[float]
     rot_y_deg: Optional[float]
+    rot_z_deg: Optional[float]
     warp_bgr: Optional[np.ndarray]
 
 
 # ============================================================
-# GUI v2
+# GUI V4
 # ============================================================
-class RectifyGUIv2:
-    """
-    Views:
-      1) Detected (full image, A/B quads)
-      2) Top view warp (selected candidate)
-      3) Crop view (selected candidate crop + quad + label)
-      4) Binary raw (selected variant)
-      5) Morph debug grid (raw/close/open/close+open + contour/quad overlays)
-    """
+class RectifyGUIv4:
     def __init__(
         self,
         root: tk.Tk,
@@ -742,11 +986,9 @@ class RectifyGUIv2:
         max_patches: int,
         batch_size: int,
         warp_size: int,
-        b_min_area_frac: float,
-        b_max_ar: float,
     ):
         self.root = root
-        self.root.title("QR Rectify GUI v2 (A/B + warp + preprocessing debug)")
+        self.root.title("QR Rectify GUI V4 (Plan B = approxPolyDP + IoU sweep)")
 
         self.image_paths = image_paths
         self.roi_cfg = roi_cfg
@@ -759,9 +1001,6 @@ class RectifyGUIv2:
         self.batch_size = int(batch_size)
         self.warp_size = int(warp_size)
 
-        self.b_min_area_frac = float(b_min_area_frac)
-        self.b_max_ar = float(b_max_ar)
-
         self.det = cv2.QRCodeDetector()
 
         self.idx_img = 0
@@ -770,14 +1009,22 @@ class RectifyGUIv2:
         self.candidates: List[Candidate] = []
         self.selected_cand = 0
 
-        # debug controls (morph)
-        self.var_variant = tk.StringVar(value="auto")
+        # defaults per request
+        self.var_variant = tk.StringVar(value="otsu")
         self.var_k = tk.IntVar(value=3)
-        self.var_close_it = tk.IntVar(value=2)
-        self.var_open_it = tk.IntVar(value=1)
+        self.var_close_it = tk.IntVar(value=4)
+        self.var_open_it = tk.IntVar(value=0)
 
         self._build_ui()
+        self._bind_live_traces()
         self._load_image(0)
+
+    def _bind_live_traces(self):
+        for v in (self.var_variant, self.var_k, self.var_close_it, self.var_open_it):
+            try:
+                v.trace_add("write", lambda *args: self._render())
+            except Exception:
+                pass
 
     def _build_ui(self):
         self.root.geometry("1500x900")
@@ -789,23 +1036,19 @@ class RectifyGUIv2:
         self.frm_right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         ttk.Label(self.frm_left, text="View:").pack(anchor="w")
-        self.btn_v1 = ttk.Button(self.frm_left, text="1) Detected (full)", command=lambda: self._set_view(0))
-        self.btn_v2 = ttk.Button(self.frm_left, text="2) Warp (top view)", command=lambda: self._set_view(1))
-        self.btn_v3 = ttk.Button(self.frm_left, text="3) Crop + quad", command=lambda: self._set_view(2))
-        self.btn_v4 = ttk.Button(self.frm_left, text="4) Binary raw", command=lambda: self._set_view(3))
-        self.btn_v5 = ttk.Button(self.frm_left, text="5) Morph debug grid", command=lambda: self._set_view(4))
-        for b in (self.btn_v1, self.btn_v2, self.btn_v3, self.btn_v4, self.btn_v5):
-            b.pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="1) Detected (full)", command=lambda: self._set_view(0)).pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="2) Warp (top view)", command=lambda: self._set_view(1)).pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="3) Crop + quad", command=lambda: self._set_view(2)).pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="4) Binary raw", command=lambda: self._set_view(3)).pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="5) Morph + debug", command=lambda: self._set_view(4)).pack(anchor="w", fill=tk.X, pady=2)
 
         ttk.Separator(self.frm_left).pack(fill=tk.X, pady=10)
 
         ttk.Label(self.frm_left, text="Images:").pack(anchor="w")
-        self.btn_prev = ttk.Button(self.frm_left, text="◀ Prev", command=self.prev_image)
-        self.btn_next = ttk.Button(self.frm_left, text="Next ▶", command=self.next_image)
-        self.btn_prev.pack(anchor="w", fill=tk.X)
-        self.btn_next.pack(anchor="w", fill=tk.X, pady=2)
+        ttk.Button(self.frm_left, text="◀ Prev", command=self.prev_image).pack(anchor="w", fill=tk.X)
+        ttk.Button(self.frm_left, text="Next ▶", command=self.next_image).pack(anchor="w", fill=tk.X, pady=2)
 
-        self.btn_recompute = ttk.Button(self.frm_left, text="Recompute (r)", command=self.recompute)
+        self.btn_recompute = ttk.Button(self.frm_left, text="Recompute CNN (r)", command=self.recompute)
         self.btn_recompute.pack(anchor="w", fill=tk.X, pady=(6, 0))
 
         ttk.Separator(self.frm_left).pack(fill=tk.X, pady=10)
@@ -817,30 +1060,25 @@ class RectifyGUIv2:
 
         ttk.Separator(self.frm_left).pack(fill=tk.X, pady=10)
 
-        ttk.Label(self.frm_left, text="Preprocess debug controls:").pack(anchor="w")
+        ttk.Label(self.frm_left, text="Live preprocessing controls (Plan B V4):").pack(anchor="w")
 
-        row = ttk.Frame(self.frm_left)
-        row.pack(fill=tk.X, pady=2)
+        row = ttk.Frame(self.frm_left); row.pack(fill=tk.X, pady=2)
         ttk.Label(row, text="Variant:").pack(side=tk.LEFT)
         self.cmb = ttk.Combobox(row, textvariable=self.var_variant, width=12, state="readonly",
                                 values=["auto", "edges", "adap", "otsu", "otsu_inv"])
         self.cmb.pack(side=tk.RIGHT)
-        self.cmb.bind("<<ComboboxSelected>>", lambda e: self._render())
 
-        row = ttk.Frame(self.frm_left)
-        row.pack(fill=tk.X, pady=2)
+        row = ttk.Frame(self.frm_left); row.pack(fill=tk.X, pady=2)
         ttk.Label(row, text="Kernel k (odd):").pack(side=tk.LEFT)
-        ttk.Spinbox(row, from_=1, to=21, textvariable=self.var_k, width=6, command=self._render).pack(side=tk.RIGHT)
+        ttk.Spinbox(row, from_=1, to=21, textvariable=self.var_k, width=6).pack(side=tk.RIGHT)
 
-        row = ttk.Frame(self.frm_left)
-        row.pack(fill=tk.X, pady=2)
+        row = ttk.Frame(self.frm_left); row.pack(fill=tk.X, pady=2)
         ttk.Label(row, text="Close iters:").pack(side=tk.LEFT)
-        ttk.Spinbox(row, from_=0, to=8, textvariable=self.var_close_it, width=6, command=self._render).pack(side=tk.RIGHT)
+        ttk.Spinbox(row, from_=0, to=10, textvariable=self.var_close_it, width=6).pack(side=tk.RIGHT)
 
-        row = ttk.Frame(self.frm_left)
-        row.pack(fill=tk.X, pady=2)
+        row = ttk.Frame(self.frm_left); row.pack(fill=tk.X, pady=2)
         ttk.Label(row, text="Open iters:").pack(side=tk.LEFT)
-        ttk.Spinbox(row, from_=0, to=8, textvariable=self.var_open_it, width=6, command=self._render).pack(side=tk.RIGHT)
+        ttk.Spinbox(row, from_=0, to=10, textvariable=self.var_open_it, width=6).pack(side=tk.RIGHT)
 
         ttk.Separator(self.frm_left).pack(fill=tk.X, pady=10)
 
@@ -848,11 +1086,9 @@ class RectifyGUIv2:
         self.txt = tk.Text(self.frm_left, height=22, width=64)
         self.txt.pack(anchor="w", fill=tk.BOTH, expand=False)
 
-        # image panel
         self.lbl_img = ttk.Label(self.frm_right)
         self.lbl_img.pack(fill=tk.BOTH, expand=True)
 
-        # bindings
         self.root.bind("<Right>", lambda e: self.next_image())
         self.root.bind("<Left>", lambda e: self.prev_image())
         self.root.bind("<space>", lambda e: self._cycle_view())
@@ -926,25 +1162,19 @@ class RectifyGUIv2:
             pos.append(PatchBox(idx=i, box=(x0, y0, x1, y1), p=float(pr)))
 
         merged = cluster_boxes_by_iou(pos, float(self.merge_iou))
-        merged = merged[:60]  # cap
+        merged = merged[:60]
 
         for mi, m in enumerate(merged):
-            union = m.box
-            crop_box = expand_box(union, float(self.roi_pad_frac), W, H)
+            crop_box = expand_box(m.box, float(self.roi_pad_frac), W, H)
             crop = crop_bgr(img, crop_box)
 
             quad_crop = None
             quad_full = None
             src = "none"
-            b_variant = None
-            b_source = None
-            b_score = None
-            b_contour = None
             rot_x = None
             rot_y = None
             warp = None
 
-            # Plan A
             qA = detect_qr_corners_opencv(self.det, crop)
             if qA is not None:
                 quad_crop = qA
@@ -952,34 +1182,31 @@ class RectifyGUIv2:
                 quad_full[:, 0] += crop_box[0]
                 quad_full[:, 1] += crop_box[1]
                 src = "A"
-
-            # Plan B
-            if quad_full is None:
-                resB = find_quad_robust(
+            else:
+                v = self._pick_variant_for_debug(None)
+                dbg = planb_v4(
                     crop_bgr_img=crop,
-                    min_area_frac=self.b_min_area_frac,
-                    eps_fracs=(0.02, 0.03, 0.04),
-                    max_ar=self.b_max_ar,
-                    k_close=int(self.var_k.get()),
-                    it_close=int(self.var_close_it.get()),
+                    variant=v,
+                    k=int(self.var_k.get()),
+                    close_it=int(self.var_close_it.get()),
+                    open_it=int(self.var_open_it.get()),
                 )
-                if resB is not None:
-                    quad_crop = resB.quad
-                    quad_full = resB.quad.copy()
+                if dbg.ok and dbg.quad is not None:
+                    quad_crop = dbg.quad
+                    quad_full = dbg.quad.copy()
                     quad_full[:, 0] += crop_box[0]
                     quad_full[:, 1] += crop_box[1]
                     src = "B"
-                    b_variant = resB.variant
-                    b_source = resB.source
-                    b_score = resB.score
-                    b_contour = resB.contour
 
             if quad_full is not None:
-                rot_x, rot_y = estimate_rot_xy_deg_from_quad(quad_full)
+                rot_x, rot_y, rot_z = estimate_rot_xyz_deg_from_quad(quad_full)
                 try:
                     warp = warp_quad_to_square(img, quad_full, out_size=self.warp_size)
                 except Exception:
                     warp = None
+            else:
+                rot_z = None
+
 
             self.candidates.append(
                 Candidate(
@@ -987,14 +1214,11 @@ class RectifyGUIv2:
                     merged=m,
                     crop_box=crop_box,
                     src=src,
-                    b_variant=b_variant,
-                    b_source=b_source,
-                    b_score=b_score,
-                    b_contour=b_contour,
                     quad_crop=quad_crop,
                     quad_full=quad_full,
                     rot_x_deg=rot_x,
                     rot_y_deg=rot_y,
+                    rot_z_deg=rot_z,
                     warp_bgr=warp,
                 )
             )
@@ -1003,15 +1227,9 @@ class RectifyGUIv2:
         self.lst.delete(0, tk.END)
         for i, c in enumerate(self.candidates):
             x0, y0, x1, y1 = c.merged.box
-            if c.src == "A":
-                tag = "A"
-            elif c.src == "B":
-                tag = f"B:{c.b_variant}:{c.b_source}" if c.b_variant and c.b_source else "B"
-            else:
-                tag = "none"
             self.lst.insert(
                 tk.END,
-                f"{i:02d} | score={c.merged.score:.3f} | {tag} | box=({x0},{y0})-({x1},{y1})"
+                f"{i:02d} | score={c.merged.score:.3f} | {c.src} | box=({x0},{y0})-({x1},{y1})"
             )
         if self.candidates:
             self.lst.selection_set(0)
@@ -1022,169 +1240,165 @@ class RectifyGUIv2:
         if not sel:
             return
         self.selected_cand = int(sel[0])
-        # if variant is auto, keep it; render will pick winner variant if B
         self._render()
 
-    def _pick_variant_for_debug(self, cand: Candidate) -> str:
+    def _pick_variant_for_debug(self, cand: Optional[Candidate]) -> str:
         v = self.var_variant.get()
-        if v != "auto":
-            return v
-        # auto: prefer plan B winner variant; else default edges
-        if cand.b_variant in {"edges", "adap", "otsu", "otsu_inv"}:
-            return cand.b_variant
-        return "edges"
+        if v == "auto":
+            return "otsu"
+        return v
+
+    def _live_planb_debug(self, cand: Candidate) -> PlanBDebugV4:
+        assert self.cur_img_bgr is not None
+        crop = crop_bgr(self.cur_img_bgr, cand.crop_box)
+        v = self._pick_variant_for_debug(cand)
+        return planb_v4(
+            crop_bgr_img=crop,
+            variant=v,
+            k=int(self.var_k.get()),
+            close_it=int(self.var_close_it.get()),
+            open_it=int(self.var_open_it.get()),
+        )
 
     def _render(self):
         if self.cur_img_bgr is None:
             return
 
         if not self.candidates:
-            view = self.cur_img_bgr.copy()
-            self._show_image(view)
-            self._update_info()
+            self._show_image(self.cur_img_bgr.copy())
+            self._update_info(None, None)
             return
 
         i = int(np.clip(self.selected_cand, 0, len(self.candidates) - 1))
         cand = self.candidates[i]
         img = self.cur_img_bgr
 
-        if self.view == 0:
-            # View 1: full image with boxes and quads
-            view = img.copy()
+        live_dbg: Optional[PlanBDebugV4] = None
+        if cand.src != "A":
+            live_dbg = self._live_planb_debug(cand)
 
+        if self.view == 0:
+            view = img.copy()
             for j, c in enumerate(self.candidates):
                 th = 5 if j == i else 3
                 draw_box(view, c.merged.box, color=(255, 255, 0), thickness=th)
-
                 x0, y0, _, _ = c.merged.box
-                if c.src == "A":
-                    lab = f"#{j} A"
-                elif c.src == "B":
-                    lab = f"#{j} B:{c.b_variant}:{c.b_source}"
-                else:
-                    lab = f"#{j} none"
-
-                cv2.putText(view, lab, (x0 + 3, max(18, y0 + 18)),
+                cv2.putText(view, f"#{j} {c.src}", (x0 + 3, max(18, y0 + 18)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2, cv2.LINE_AA)
-
                 if c.quad_full is not None:
                     col = (0, 255, 0) if c.src == "A" else (255, 0, 255)
                     draw_poly(view, c.quad_full, color=col, thickness=4 if j == i else 3)
 
             self._show_image(view)
-            self._update_info()
+            self._update_info(cand, live_dbg)
 
         elif self.view == 1:
-            # View 2: warp only
-            if cand.warp_bgr is None:
-                ph = np.zeros((self.warp_size, self.warp_size, 3), dtype=np.uint8)
-                cv2.putText(ph, "No warp (no quad)", (20, self.warp_size // 2),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
-                self._show_image(ph)
-                self._update_info()
+            if cand.src == "A" and cand.warp_bgr is not None:
+                warp = cand.warp_bgr.copy()
+                rx = cand.rot_x_deg or 0.0
+                ry = cand.rot_y_deg or 0.0
+                cv2.putText(warp, "method=A", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(warp, f"rot_x={rx:.2f} deg  rot_y={ry:.2f} deg", (10, 55),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+                self._show_image(warp)
+                self._update_info(cand, live_dbg)
                 return
 
-            warp = cand.warp_bgr.copy()
-            rx = cand.rot_x_deg if cand.rot_x_deg is not None else 0.0
-            ry = cand.rot_y_deg if cand.rot_y_deg is not None else 0.0
-            lab = "method=A" if cand.src == "A" else f"method=B:{cand.b_variant}:{cand.b_source}"
-            cv2.putText(warp, lab, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(warp, f"rot_x={rx:.2f} deg  rot_y={ry:.2f} deg", (10, 55),
+            if live_dbg is None or (not live_dbg.ok) or (live_dbg.quad is None):
+                ph = np.zeros((self.warp_size, self.warp_size, 3), dtype=np.uint8)
+                cv2.putText(ph, "No warp (Plan B failed)", (20, self.warp_size // 2),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+                self._show_image(ph)
+                self._update_info(cand, live_dbg)
+                return
+
+            quad_full = live_dbg.quad.copy()
+            quad_full[:, 0] += cand.crop_box[0]
+            quad_full[:, 1] += cand.crop_box[1]
+            warp = warp_quad_to_square(img, quad_full, out_size=self.warp_size)
+
+            rx, ry, rz = estimate_rot_xyz_deg_from_quad(quad_full)
+            cv2.putText(warp, f"method=B(v4) var={live_dbg.variant} iou={live_dbg.quad_iou*100:.1f}%", (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(warp, f"rot_x={rx:.2f} deg  rot_y={ry:.2f} deg  rot_z={rz:.2f} deg", (10, 55),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
 
             self._show_image(warp)
-            self._update_info()
+            self._update_info(cand, live_dbg)
 
         elif self.view == 2:
-            # View 3: crop + quad overlay
             crop = crop_bgr(img, cand.crop_box)
             view = crop.copy()
-            if cand.quad_crop is not None:
-                col = (0, 255, 0) if cand.src == "A" else (255, 0, 255)
-                draw_poly(view, cand.quad_crop, color=col, thickness=3)
-                if cand.src == "B":
-                    cv2.drawContours(view, [cand.b_contour], -1, (0, 255, 255), 2, cv2.LINE_AA) if cand.b_contour is not None else None
-                    cv2.putText(view, f"B:{cand.b_variant}:{cand.b_source}", (10, 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2, cv2.LINE_AA)
-                else:
-                    cv2.putText(view, "A:opencv", (10, 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2, cv2.LINE_AA)
+
+            if cand.src == "A" and cand.quad_crop is not None:
+                draw_poly(view, cand.quad_crop, color=(0, 255, 0), thickness=3)
+                cv2.putText(view, "A:opencv", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
             else:
-                cv2.putText(view, "no quad", (10, 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+                if live_dbg is not None and live_dbg.contour is not None:
+                    cv2.drawContours(view, [live_dbg.contour], -1, (0, 255, 255), 2, cv2.LINE_AA)
+                if live_dbg is not None and live_dbg.ok and live_dbg.quad is not None:
+                    draw_poly(view, live_dbg.quad, color=(255, 0, 255), thickness=3)
+                    cv2.putText(view, f"B:v4 var={live_dbg.variant} iou={live_dbg.quad_iou*100:.1f}%", (10, 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2, cv2.LINE_AA)
+                else:
+                    cv2.putText(view, f"B failed: {live_dbg.note if live_dbg else 'no dbg'}", (10, 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2, cv2.LINE_AA)
 
             self._show_image(view)
-            self._update_info()
+            self._update_info(cand, live_dbg)
 
         elif self.view == 3:
-            # View 4: binary raw (selected variant)
             crop = crop_bgr(img, cand.crop_box)
-            variants = preprocess_variants(crop)
-            vtag = self._pick_variant_for_debug(cand)
-            raw = variants.get(vtag, variants["edges"])
+            v = self._pick_variant_for_debug(cand)
+            raw = preprocess_variants(crop).get(v, preprocess_variants(crop)["otsu"])
+            raw = maybe_fix_polarity(raw)
             view = gray_to_bgr(raw)
-            cv2.putText(view, f"RAW variant={vtag}", (10, 25),
+            cv2.putText(view, f"RAW variant={v}", (10, 25),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
             self._show_image(view)
-            self._update_info()
+            self._update_info(cand, live_dbg)
 
         else:
-            # View 5: morph debug grid (raw/close/open/close+open) + overlays
             crop = crop_bgr(img, cand.crop_box)
-            variants = preprocess_variants(crop)
-            vtag = self._pick_variant_for_debug(cand)
-            raw = variants.get(vtag, variants["edges"])
+            v = self._pick_variant_for_debug(cand)
+            dbg = live_dbg if live_dbg is not None else planb_v4(
+                crop_bgr_img=crop,
+                variant=v,
+                k=int(self.var_k.get()),
+                close_it=int(self.var_close_it.get()),
+                open_it=int(self.var_open_it.get()),
+            )
 
-            k = int(self.var_k.get())
-            itc = int(self.var_close_it.get())
-            ito = int(self.var_open_it.get())
-
-            close_img = morph(raw, cv2.MORPH_CLOSE, k, itc)
-            open_img = morph(raw, cv2.MORPH_OPEN, k, ito)
-            close_open = morph(close_img, cv2.MORPH_OPEN, k, ito)
-
-            # Make BGR panels with labels
-            p_raw = gray_to_bgr(raw)
-            p_close = gray_to_bgr(close_img)
-            p_open = gray_to_bgr(open_img)
-            p_co = gray_to_bgr(close_open)
-
-            for panel, name in [(p_raw, "RAW"), (p_close, "CLOSE"), (p_open, "OPEN"), (p_co, "CLOSE->OPEN")]:
-                cv2.putText(panel, f"{name}  var={vtag}", (10, 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
-
-            # Overlay winning contour/quad on panels for context (if we have crop-quad)
-            if cand.quad_crop is not None:
-                col = (0, 255, 0) if cand.src == "A" else (255, 0, 255)
-                draw_poly(p_raw, cand.quad_crop, col, 2)
-                draw_poly(p_close, cand.quad_crop, col, 2)
-                draw_poly(p_open, cand.quad_crop, col, 2)
-                draw_poly(p_co, cand.quad_crop, col, 2)
-
-            if cand.b_contour is not None:
-                cv2.drawContours(p_raw, [cand.b_contour], -1, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.drawContours(p_close, [cand.b_contour], -1, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.drawContours(p_open, [cand.b_contour], -1, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.drawContours(p_co, [cand.b_contour], -1, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # Also show crop BGR with overlay in a 2x3 grid (adds context)
             crop_vis = crop.copy()
-            if cand.quad_crop is not None:
-                col = (0, 255, 0) if cand.src == "A" else (255, 0, 255)
-                draw_poly(crop_vis, cand.quad_crop, col, 3)
-                if cand.src == "B":
-                    cv2.putText(crop_vis, f"B:{cand.b_variant}:{cand.b_source}", (10, 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2, cv2.LINE_AA)
-                else:
-                    cv2.putText(crop_vis, "A:opencv", (10, 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2, cv2.LINE_AA)
-            cv2.putText(crop_vis, f"k={k} close={itc} open={ito}", (10, crop_vis.shape[0]-10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2, cv2.LINE_AA)
+            if dbg.contour is not None:
+                cv2.drawContours(crop_vis, [dbg.contour], -1, (0, 255, 255), 2, cv2.LINE_AA)
+            if dbg.ok and dbg.quad is not None:
+                draw_poly(crop_vis, dbg.quad, color=(255, 0, 255), thickness=3)
+            cv2.putText(crop_vis, f"crop | {dbg.note}", (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 0), 2, cv2.LINE_AA)
 
-            # Build grid
-            grid = make_grid([crop_vis, p_raw, p_close, p_open, p_co], cols=2)
+            p_raw = gray_to_bgr(dbg.raw); cv2.putText(p_raw, "RAW", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+            p_close = gray_to_bgr(binarize(dbg.close_img)); cv2.putText(p_close, "CLOSE", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+            p_open = gray_to_bgr(binarize(dbg.open_img)); cv2.putText(p_open, "OPEN", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+            p_used = gray_to_bgr(dbg.used); cv2.putText(p_used, "USED (close->open)", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+
+            p_mask = gray_to_bgr(dbg.obj_mask)
+            cv2.putText(p_mask, f"OBJ_MASK ({'edge->fill' if dbg.edge_like else 'filled'})", (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0,255,255), 2, cv2.LINE_AA)
+
+            p_edges = gray_to_bgr(dbg.edges_boundary)
+            cv2.putText(p_edges, "EDGES (mask boundary)", (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+
+            overlay = gray_to_bgr(dbg.edges_boundary)
+            if dbg.ok and dbg.quad is not None:
+                draw_poly(overlay, dbg.quad, color=(255, 0, 255), thickness=2)
+            cv2.putText(overlay, "Quad overlay (magenta)", (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,255), 2, cv2.LINE_AA)
+
+            grid = make_grid([crop_vis, p_raw, p_close, p_open, p_used, p_mask, p_edges, overlay], cols=2)
             self._show_image(grid)
-            self._update_info()
+            self._update_info(cand, dbg)
 
     def _show_image(self, img_bgr: np.ndarray):
         max_w = 1050
@@ -1200,7 +1414,7 @@ class RectifyGUIv2:
         self.lbl_img.configure(image=photo)
         self.lbl_img.image = photo
 
-    def _update_info(self):
+    def _update_info(self, cand: Optional[Candidate], dbg: Optional[PlanBDebugV4]):
         p = self.image_paths[self.idx_img]
         lines = []
         lines.append(f"Image: {p.name}  ({self.idx_img+1}/{len(self.image_paths)})")
@@ -1208,31 +1422,29 @@ class RectifyGUIv2:
         lines.append("")
         lines.append(f"Model run: {self.model.name}  kind={self.model.kind}  device={self.model.device.type}")
         lines.append(f"patch_thr={self.patch_thr:.2f}   merge_iou={self.merge_iou:.2f}   roi_pad_frac={self.roi_pad_frac:.2f}")
-        lines.append(f"warp_size={self.warp_size}")
         lines.append("")
         lines.append(f"Candidates: {len(self.candidates)}")
 
-        if self.candidates:
-            i = int(np.clip(self.selected_cand, 0, len(self.candidates) - 1))
-            c = self.candidates[i]
+        if cand is not None:
+            idx = int(np.clip(self.selected_cand, 0, max(0, len(self.candidates) - 1)))
             lines.append("")
-            lines.append(f"Selected: #{i}  score={c.merged.score:.3f}  src={c.src}")
-            lines.append(f"Box: {c.merged.box}  members={len(c.merged.members)}")
-            lines.append(f"Crop box: {c.crop_box}")
-
-            if c.src == "B":
-                lines.append(f"Plan B: variant={c.b_variant}  source={c.b_source}  b_score={c.b_score}")
-            if c.quad_full is not None:
-                rx = c.rot_x_deg if c.rot_x_deg is not None else 0.0
-                ry = c.rot_y_deg if c.rot_y_deg is not None else 0.0
-                lines.append(f"rot_x={rx:.2f} deg   rot_y={ry:.2f} deg")
-            else:
-                lines.append("No quad found.")
-
+            lines.append(f"Selected: #{idx}  score={cand.merged.score:.3f}  src={cand.src}")
+            lines.append(f"Box: {cand.merged.box}  members={len(cand.merged.members)}")
+            lines.append(f"Crop box: {cand.crop_box}")
             lines.append("")
-            lines.append("Debug controls:")
-            lines.append(f"  variant={self.var_variant.get()} (auto uses winner if B)")
-            lines.append(f"  k={self.var_k.get()} close_it={self.var_close_it.get()} open_it={self.var_open_it.get()}")
+            lines.append("Live Plan B controls:")
+            lines.append(f"  variant={self.var_variant.get()}  k={self.var_k.get()}  close={self.var_close_it.get()}  open={self.var_open_it.get()}")
+
+            if dbg is not None:
+                lines.append("")
+                lines.append(f"Live Plan B: var={dbg.variant} ok={dbg.ok} iou={dbg.quad_iou*100:.2f}% note={dbg.note}")
+                lines.append(f"  edge_like={dbg.edge_like} contour={'yes' if dbg.contour is not None else 'no'}")
+
+                if dbg.ok and dbg.quad is not None:
+                    quad_full = dbg.quad + np.array([cand.crop_box[0], cand.crop_box[1]], dtype=np.float32)
+                    rx, ry, rz = estimate_rot_xyz_deg_from_quad(quad_full)
+                    lines.append(f"  rot_x={rx:.2f} deg  rot_y={ry:.2f} deg  rot_z={rz:.2f} deg")
+
 
         self.txt.delete("1.0", tk.END)
         self.txt.insert(tk.END, "\n".join(lines))
@@ -1242,13 +1454,12 @@ class RectifyGUIv2:
 # CLI / main
 # ============================================================
 def parse_args():
-    ap = argparse.ArgumentParser("GUI v2: A/B quads + warp + preprocessing debug views.")
+    ap = argparse.ArgumentParser("GUI V4: Plan B = approxPolyDP + IoU sweep (edge/fill auto).")
     ap.add_argument("--input", type=str, required=True, help="Folder with images (or single image).")
     ap.add_argument("--roi-config", type=str, required=True, help="ROI config JSON.")
     ap.add_argument("--runs-dir", type=str, default="runs/cnn_scratch", help="Runs directory to scan (best.pt).")
     ap.add_argument("--device", type=str, default="auto", help="auto|cuda|mps|cpu")
 
-    # your requested defaults:
     ap.add_argument("--run-index", type=int, default=0, help="Which run to use (0=newest).")
     ap.add_argument("--patch-thr", type=float, default=0.95, help="Patch score threshold.")
     ap.add_argument("--merge-iou", type=float, default=0.30, help="IoU threshold for clustering patches.")
@@ -1257,11 +1468,6 @@ def parse_args():
     ap.add_argument("--max-patches", type=int, default=200)
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--warp-size", type=int, default=420)
-
-    # Plan B knobs
-    ap.add_argument("--b-min-area-frac", type=float, default=0.008)
-    ap.add_argument("--b-max-ar", type=float, default=3.0)
-
     return ap.parse_args()
 
 
@@ -1293,7 +1499,7 @@ def main():
         raise SystemExit(f"No images found in: {in_path}")
 
     root = tk.Tk()
-    app = RectifyGUIv2(
+    _ = RectifyGUIv4(
         root=root,
         image_paths=img_paths,
         roi_cfg=roi_cfg,
@@ -1304,8 +1510,6 @@ def main():
         max_patches=int(args.max_patches),
         batch_size=int(args.batch_size),
         warp_size=int(args.warp_size),
-        b_min_area_frac=float(args.b_min_area_frac),
-        b_max_ar=float(args.b_max_ar),
     )
     root.mainloop()
 
