@@ -19,7 +19,7 @@ Für das Projekt werden drei etablierte Backbones ausgewählt, die ein gutes Ver
 
 Die Transfer-Experimente werden auf demselben Patch-Datensatz und derselben Split-Datei wie die finalen Trainings des eigenen \ac{CNN} durchgeführt (Gruppierung nach Ursprungsbildern; vgl. Kapitel~\ref{ch:datengrundlage}~Datengrundlage). Damit bleiben Datengröße, Klassenbalance und die Trennung zwischen Training, Validierung und Test vergleichbar.
 
-Da die vortrainierten Backbones typischerweise eine Eingangsauflösung von $224\,\times\,224$ erwarten, werden die Patches hierfür auf $224\,\times\,224$ skaliert. Zusätzlich wird mit den üblichen ImageNet-Normalisierungsparametern gearbeitet (Mean/Std). Als Klassifikationskopf wird ein kleiner Head mit einem einzelnen Logit (Binary Classification) eingesetzt.
+Die vortrainierten Backbones haben eine Eingangsauflösung von $224\,\times\,224$. Deshalb müssen die Patches auf $224\,\times\,224$ skaliert werden. Zusätzlich wird mit den üblichen ImageNet-Normalisierungsparametern gearbeitet (Mean/Std). Als Klassifikationskopf wird ein kleiner Head mit einem einzelnen Logit (Binary Classification) eingesetzt.
 
 Um die Stabilität beim Fine-Tuning zu erhöhen, wird der Backbone zunächst \textit{gefreezed} und nur der Head trainiert (Warmup-Phase). Anschließend wird der Backbone mit deutlich kleinerer effektiver Lernrate weiteroptimiert. Als Optimierer kommt AdamW zum Einsatz, wobei Early Stopping über den Validierungs-Loss aktiv ist. Die Datenaugmentation (u.\,a. zufällige Rotation, Perspektive, Blur, Helligkeit/Kontrast und JPEG-Artefakte) wird analog zu den vorherigen Experimenten genutzt, um die Robustheit gegenüber realen Störeinflüssen (Reflexionen, Schmutz, Schaum, Bewegungsunschärfe) zu erhöhen.
 
@@ -28,14 +28,14 @@ Um die Stabilität beim Fine-Tuning zu erhöhen, wird der Backbone zunächst \te
 
 Abbildung~\ref{fig:transfer_train_loss_overlay} und Abbildung~\ref{fig:transfer_val_acc_overlay} zeigen exemplarisch den Trainingsverlauf im Vergleich zu ausgewählten Trainings der eigenen \ac{CNN}-Entwicklung. Visuell deutlich ist, dass die Transfer-Modelle sehr schnell zu niedrigen Loss-Werten konvergieren, während die From-Scratch-Trainings (insbesondere die finale Baseline) deutlich langsamer und mit höherem Loss-Niveau lernen. Dieses Verhalten ist erwartbar: Der vortrainierte Backbone liefert von Beginn an brauchbare Merkmalsrepräsentationen, sodass der Head die Entscheidung \ac{QR}/No-\ac{QR} mit wenigen Epochen adaptieren kann.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\VarPicWidthD]{Figures/png/overlay_train_loss.png}
     \caption{Überlagerung des Trainings-Loss: Transfer-Modelle erreichen bereits nach wenigen Epochen sehr niedrige Loss-Werte, während die From-Scratch-Trainings deutlich langsamer konvergieren.}
     \label{fig:transfer_train_loss_overlay}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\VarPicWidthD]{Figures/png/overlay_val_acc.png}
     \caption{Überlagerung der Validierungs-Accuracy: In den Transfer-Läufen wird sehr schnell eine hohe Validierungsleistung erreicht. Für die Interpretation ist wichtig, dass eine perfekte Validierungs-Accuracy aufgrund der begrenzten Validierungsmenge nicht automatisch eine perfekte Generalisierung garantiert.}
@@ -50,7 +50,7 @@ Tabelle~\ref{tab:transfer_results} fasst die wichtigsten Kennzahlen zusammen. Al
     \item \textbf{ResNet18} zeigt die schwächste Test-Performance der drei Transfer-Modelle. Eine plausible Erklärung ist, dass ResNet18 bei gleicher Trainingskonfiguration weniger gut mit den sehr kleinräumigen und stark variierenden Mustern in den Patches harmoniert oder stärker von den konkreten Augmentations-/Fine-Tuning-Einstellungen abhängt.
 \end{itemize}
 
-\begin{table}[ht]
+\begin{table}[htbp]
 \centering
 \small
 \caption{Vergleich der Transfer-Modelle (Test-Accuracy) gegenüber der finalen From-Scratch-Baseline.}

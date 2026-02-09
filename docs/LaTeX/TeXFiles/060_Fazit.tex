@@ -2,60 +2,46 @@
 \label{ch:outlook}
 
 \section{Zusammenfassung}
-Ziel dieser Projektarbeit war die robuste Erkennung und Analyse von QR-Codes hinter einer Windschutzscheibe unter realistischen Störbedingungen (Verschmutzung, Nässe/Schaum, Reflexionen, wechselnde Beleuchtung und störende Hintergrundobjekte). Dafür wurde eine durchgängige Pipeline entwickelt, die sich in drei Kernbausteine gliedert:
+Ziel dieser Projektarbeit ist die robuste Erkennung und Analyse von \ac{QR}-Codes hinter einer Windschutzscheibe unter realistischen Störbedingungen (Verschmutzung, Nässe/Schaum, Reflexionen, wechselnde Beleuchtung und störende Hintergrundobjekte). Dafür wird eine durchgängige Pipeline entwickelt, die sich in drei Kernbausteine gliedert:
 
 \begin{itemize}
-    \item \textbf{Patch-basierter Datensatzaufbau:} Aus hochauflösenden Szenenbildern wurden quadratische Patches fester Größe extrahiert und manuell gelabelt. Die Aufteilung der Daten erfolgte source-basiert, um Datenleckage durch stark ähnliche Patches aus demselben Ursprungsbild zu vermeiden.
-    \item \textbf{CNN-Klassifikation (QR vs.\ No-QR):} Es wurde zunächst ein eigenes CNN trainiert und systematisch über Konfigurations-Overrides optimiert. Im zweiten Schritt wurde Transfer Learning mit verschiedenen Backbones untersucht, um die Generalisierung bei begrenzter Datenmenge zu erhöhen.
-    \item \textbf{Lokalisierung und Lesbarkeitsprüfung im Vollbild:} Aus \acp{ROI} und Patch-Predictions wurden über ein IoU-basiertes Merging finale Kandidatenregionen gebildet. Anschließend wurde die Nutzbarkeit über mehrere QR-Decoder parallel geprüft. Ergänzend wurde eine Geometrie-Pipeline entwickelt, die aus der detektierten QR-Fläche eine Top-View erzeugt und daraus Rotationswinkel als Grundlage für eine Kamerapositionierungs-Empfehlung ableitet.
+    \item \textbf{Patch-basierter Datensatzaufbau:} Aus hochauflösenden Szenenbildern werden quadratische Patches fester Größe extrahiert und manuell gelabelt. Die Aufteilung der Daten erfolgt source-basiert, um Datenleckage durch stark ähnliche Patches aus demselben Ursprungsbild zu vermeiden.
+    \item \textbf{\ac{CNN}-Klassifikation (\ac{QR} vs.\ No-\ac{QR}):} Es wird zunächst ein eigenes \ac{CNN} trainiert und systematisch über Konfigurations-Overrides optimiert. Im zweiten Schritt wird Transfer Learning mit verschiedenen Backbones untersucht, um die Generalisierung bei begrenzter Datenmenge zu erhöhen.
+    \item \textbf{Lokalisierung und Lesbarkeitsprüfung im Vollbild:} Aus \acp{ROI} und Patch-Predictions wird über ein \ac{IoU}-basiertes Merging finale Kandidatenregionen gebildet. Anschließend wird die Nutzbarkeit über mehrere \ac{QR}-Decoder parallel geprüft. Ergänzend wird eine Geometrie-Pipeline entwickelt, die aus der detektierten \ac{QR}-Fläche eine Top-View erzeugt und daraus Rotationswinkel als Grundlage für eine Kamerapositionierungs-Empfehlung ableitet.
 \end{itemize}
 
-Ein wichtiger praktischer Erkenntnisgewinn war, dass die Güte der Evaluierung maßgeblich von der korrekten Split-Strategie abhängt: Patch-basierte Splits können die Leistung künstlich erhöhen, wenn ähnliche Ausschnitte desselben Ursprungsbildes in Training und Test landen. Nach Umstellung auf source-basierte Splits wurden die Ergebnisse deutlich realistischer und damit belastbarer.
+Ein Erkenntnisgewinn ist, dass die Güte der Evaluierung maßgeblich von der korrekten Split-Strategie abhängt. Patch-basierte Splits können die Leistung künstlich erhöhen, wenn ähnliche Ausschnitte desselben Ursprungsbildes in Training und Test landen. Nach Umstellung auf source-basierte Splits sind die Ergebnisse realistischer und folglich belastbarer.
+
+\newpage
 
 \section{Ausblick}
-Im Projekt wurde eine vollständige Pipeline bis zur Lesbarkeitsbewertung und Winkelabschätzung umgesetzt. Für eine weitere Steigerung von Robustheit und Übertragbarkeit bieten sich insbesondere folgende Schritte an:
+Im Projekt wird eine vollständige Pipeline bis zur Lesbarkeitsbewertung und Winkelabschätzung umgesetzt. Im folgenden Abschnitt werden Möglichkeiten für weitere Steigerungung von Robustheit und Übertragbarkeit vorgestellt.
 
 \subsection{Mehr Daten und mehr \textit{Unique Sources}}
-Der stärkste Hebel für Generalisierung ist eine größere und diversere Datengrundlage. Besonders vorteilhaft wären:
+Der stärkste Hebel für Generalisierung ist eine größere und diversere Datengrundlage:
 \begin{itemize}
     \item mehr Ursprungsbilder aus unterschiedlichen Fahrzeugen, Windschutzscheiben-Geometrien und Innenräumen,
-    \item mehr Variabilität in Distanz, Perspektive und QR-Größe,
+    \item mehr Variabilität in Distanz, Perspektive und \ac{QR}-Größe,
     \item gezielte Abdeckung schwieriger Szenarien (Schaumcluster, starke Spiegelungen, Teilabdeckung, Motion Blur).
 \end{itemize}
-Mehr \textit{unique sources} reduziert die Gefahr, dass Modelle ungewollt auf fahrzeugspezifische Muster oder wiederkehrende Hintergründe reagieren, statt auf QR-Strukturen.
+Mehr \textit{unique sources} reduziert die Gefahr, dass Modelle ungewollt auf fahrzeugspezifische Muster oder wiederkehrende Hintergründe reagieren, statt auf \ac{QR}-Strukturen.
 
 \subsection{Training nur mit Graustufen}
-QR-Codes sind strukturell (Kontrast/Geometrie) und nicht farblich definiert. Ein nächster Schritt wäre daher ein Training ausschließlich auf Graustufen-Patches:
+\ac{QR}-Codes sind strukturell (Kontrast/Geometrie) und nicht farblich definiert. Als ein weiterer nächster Schritt bietet sich ein Training ausschließlich auf Graustufen-Patches an:
 \begin{itemize}
     \item potenziell stabileres Lernen durch Reduktion irrelevanter Farbvariationen (Reflexionsfarbe, Lack-/Innenraumfarben),
     \item geringerer Rechenaufwand und weniger Parameterbedarf im ersten Layer,
     \item klarer Fokus auf Kanten, Module und Finder-Pattern.
 \end{itemize}
-Optional könnte man RGB und Gray auch als zweigleisige Eingabe testen (Early Fusion), um zu prüfen, ob Farbe in einzelnen Sonderfällen trotzdem hilft.
+Optional kann RGB und Gray auch als zweigleisige Eingabe getestet werden (Early Fusion), um zu prüfen, ob Farbe in einzelnen Sonderfällen trotzdem hilft.
 
 \subsection{Von heuristischen ROIs zu lernbasierten Region Proposals}
-Die aktuelle ROI-Erzeugung basiert auf klassischen Bildmerkmalen und Filtermethoden. Das ist transparent und schnell, aber prinzipbedingt empfindlich gegenüber starken Kanten in Nicht-QR-Objekten (z.\,B.\ Innenraumdetails oder harte Hintergrundstrukturen). Als nächster Evolutionsschritt wäre eine lernbasierte Proposal-Strategie naheliegend:
+Die aktuelle \ac{ROI}-Erzeugung basiert auf klassischen Bildmerkmalen und Filtermethoden. Als nächster Schritt kann eine lernbasierte Proposal-Strategie untersucht werden:
 \begin{itemize}
-    \item \textbf{Two-Stage-Detektor (z.\,B.\ Faster R-CNN):} Ein RPN (Region Proposal Network) erzeugt Kandidatenregionen datengetrieben, die anschließend klassifiziert und regressiert werden. Damit würde die ROI-Auswahl nicht mehr durch Heuristiken, sondern durch ein trainiertes Proposal-Netz erfolgen.
-    \item \textbf{End-to-End-Detektion statt Patch-Kaskade:} Alternativ wäre auch ein One-Stage-Detektor (z.\,B.\ YOLO/SSD) denkbar, der direkt Bounding Boxes für QR-Codes vorhersagt.
+    \item \textbf{Two-Stage-Detektor (z.\,B.\ Faster R-\ac{CNN}):} Ein RPN\footnote{Region Proposal Network} erzeugt Kandidatenregionen datengetrieben, die anschließend klassifiziert und regressiert werden. Damit wird die \ac{ROI}-Auswahl nicht mehr durch Heuristiken, sondern durch ein trainiertes Proposal-Netz erfolgen.
+    \item \textbf{End-to-End-Detektion statt Patch-Kaskade:} Alternativ kann auch ein One-Stage-Detektor (z.\,B.\ YOLO/SSD) untersucht werden, der direkt Bounding Boxes für \ac{QR}-Codes vorhersagt.
 \end{itemize}
 Gerade bei kleinen Objekten und stark variierenden Hintergründen kann ein trainierter Proposal-Mechanismus die Anzahl irrelevanter Kandidaten reduzieren und die Lokalisierung stabilisieren.
-
-\subsection{Gezielte Evaluierung und robustere Modellwahl}
-Um die Aussagekraft weiter zu erhöhen, wären sinnvoll:
-\begin{itemize}
-    \item source-basierte Cross-Validation (mehrere Folds), um die Abhängigkeit von einem einzelnen Split zu reduzieren,
-    \item eine systematische Fehleranalyse (False Positives/Negatives) mit Kategorien wie \glqq Reflexion\grqq, \glqq Schaum\grqq, \glqq sehr klein\grqq, \glqq Hintergrundkanten\grqq,
-    \item ein \glqq hard-negative mining\grqq{} Ansatz, bei dem besonders irreführende Negativpatches gezielt nachgelabelt und nachtrainiert werden.
-\end{itemize}
-
-\subsection{Verbesserungen an der Decoding-Stufe}
-Die Lesbarkeitsprüfung hat gezeigt, dass einzelne QR-Reader inkonsistent sein können und die Multi-Reader-Strategie daher praktisch relevant ist. Als Ausblick bieten sich an:
-\begin{itemize}
-    \item erweiterte Preprocessing-Varianten (z.\,B.\ Deblurring, stärkere Super-Resolution für kleine Crops),
-    \item eine Qualitätsmetrik für die Top-View (Schärfe/Modulkontrast) zur Priorisierung der Kandidaten,
-    \item zeitliche Stabilisierung bei Videostreams (Tracking über Frames, Majority Vote über mehrere Bilder).
-\end{itemize}
 
 \subsection{Deployment-nahe Aspekte}
 Für ein reales System in einer Waschanlage wären zusätzlich folgende Punkte zu beachten:
@@ -66,4 +52,4 @@ Für ein reales System in einer Waschanlage wären zusätzlich folgende Punkte z
 \end{itemize}
 
 \bigskip
-Insgesamt zeigt das Projekt, dass die Kombination aus patch-basierter Klassifikation, nachvollziehbarem Merging und einer robusten Lesbarkeitsprüfung bereits eine praxistaugliche Grundlage bildet. Die größten Potenziale für den nächsten Schritt liegen in mehr und diverseren Daten sowie in einer lernbasierten, end-to-end Lokalisierung (Region Proposals) anstelle rein heuristischer ROI-Filterung.
+Insgesamt zeigt das Projekt, dass die Kombination aus patch-basierter Klassifikation, nachvollziehbarem Merging und einer robusten Lesbarkeitsprüfung bereits eine praxistaugliche Grundlage bildet. Die größten Potenziale für den nächsten Schritt liegen in mehr und diverseren Daten sowie in einer lernbasierten, end-to-end Lokalisierung (Region Proposals) anstelle rein heuristischer \ac{ROI}-Filterung.

@@ -125,6 +125,8 @@ Die Splits werden mit festen Anteilen (Train/Val/Test) erzeugt und über einen f
     \item Test: 7 Sources
 \end{listNorm}
 
+\newpage
+
 \subsubsection{Balancierung der Klassenverteilung}
 Die Rohdaten sind stark unausgeglichen (deutlich mehr \texttt{no\_qr}-Patches als \texttt{qr}-Patches). Für ein stabiles Training des binären Klassifikators wird daher \emph{pro Split} eine 50/50-Verteilung hergestellt. Dazu wird innerhalb jedes Splits die Mehrheitsklasse (\texttt{no\_qr}) zufällig heruntergesampelt, bis die Anzahl der \texttt{no\_qr}-Patches der Anzahl der \texttt{qr}-Patches entspricht (siehe Tabelle~\ref{tab:patch_splits}). 
 
