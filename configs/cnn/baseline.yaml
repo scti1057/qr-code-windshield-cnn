@@ -21,7 +21,7 @@ augment:
   jpeg_p: 0.2
 
 model:
-  name: "tinyqrnet_v1"
+  name: "tinyqrnet_v1"    # our own net!
   in_channels: 3
   base_channels: 32        # 16/32/64 als Sweep
   blocks_per_stage: [2, 2, 2, 2]
