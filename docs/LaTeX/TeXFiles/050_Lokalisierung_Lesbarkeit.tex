@@ -16,12 +16,12 @@ Zur Entwicklung und Bewertung der Lokalisierungs-Pipeline wurde ein eigenes GUI-
     \item die Zwischenergebnisse in fünf Ansichten visualisiert werden (Original, ROIs, Predictions, Merged-ROIs, Readability),
     \item und die Lesbarkeitsprüfung mit mehreren QR-Readern parallel ausgeführt werden.
 \end{itemize}
-Das war besonders hilfreich, um typische Fehlerbilder (z.\,B. harte Negativbeispiele durch starke Kanten, Spiegelungen oder Hintergrundobjekte) visuell zu verstehen und Parameter so zu wählen, dass die QR-Region im realistischen Szenario stabil wiedergefunden wird. :contentReference[oaicite:1]{index=1}
+Das war besonders hilfreich, um typische Fehlerbilder (z.\,B. harte Negativbeispiele durch starke Kanten, Spiegelungen oder Hintergrundobjekte) visuell zu verstehen und Parameter so zu wählen, dass die QR-Region im realistischen Szenario stabil wiedergefunden wird.
 
 \subsection{Stufe 1: ROI-Vorschläge (Region Proposals)}
 \label{subsec:stage1_rois}
 
-Die Positionsbestimmung startet mit der Erzeugung von Kandidatenregionen (\acp{ROI}) im Vollbild. Dazu werden aus dem Bild zunächst \textbf{ROI-Zentren} vorgeschlagen (im GUI über eine gespeicherte ROI-Konfiguration aus dem ROI-Tuner), und um jedes Zentrum wird ein Patch fester Größe ausgeschnitten. Diese Patch-Größe entspricht der für das Training verwendeten Patch-Größe (typisch $265 \times 265$ Pixel), damit das CNN auf exakt den Daten arbeitet, auf denen es gelernt hat. Zusätzlich existiert ein Cap (z.\,B. 200 Patches pro Bild), um die Laufzeit zu begrenzen. :contentReference[oaicite:2]{index=2}
+Die Positionsbestimmung startet mit der Erzeugung von Kandidatenregionen (\acp{ROI}) im Vollbild. Dazu werden aus dem Bild zunächst \textbf{ROI-Zentren} vorgeschlagen (im GUI über eine gespeicherte ROI-Konfiguration aus dem ROI-Tuner), und um jedes Zentrum wird ein Patch fester Größe ausgeschnitten. Diese Patch-Größe entspricht der für das Training verwendeten Patch-Größe (typisch $265 \times 265$ Pixel), damit das CNN auf exakt den Daten arbeitet, auf denen es gelernt hat. Zusätzlich existiert ein Cap (z.\,B. 200 Patches pro Bild), um die Laufzeit zu begrenzen.
 
 \subsection{Stufe 2: Patch-Klassifikation (QR vs. No-QR)}
 \label{subsec:stage2_cnn}
@@ -31,7 +31,7 @@ Jeder vorgeschlagene Patch wird anschließend durch das gewählte Modell klassif
     \item \textbf{Scratch-Modelle} (eigenes CNN, Input typischerweise $265\times265$),
     \item als auch \textbf{Transfer-Modelle} (z.\,B. EfficientNet-B0 / MobileNetV3-Large / ResNet18, Input typischerweise $224\times224$ mit ImageNet-Normalisierung).
 \end{itemize}
-Die Ausgabe wird als Wahrscheinlichkeit $p(\text{QR})$ interpretiert (Sigmoid/Softmax je nach Output-Shape). Anschließend wird per Schwellwert $\texttt{thr}$ entschieden, ob ein Patch als QR-positiv gilt. :contentReference[oaicite:3]{index=3}
+Die Ausgabe wird als Wahrscheinlichkeit $p(\text{QR})$ interpretiert (Sigmoid/Softmax je nach Output-Shape). Anschließend wird per Schwellwert $\texttt{thr}$ entschieden, ob ein Patch als QR-positiv gilt.
 
 \textbf{Empirische Einstellung (EfficientNet-B0):} Für EfficientNet-B0 hat sich im Projekt ein hoher Klassifikationsschwellwert von
 \[
@@ -44,7 +44,7 @@ als sehr robust erwiesen. Die Intuition dahinter: Im Vollbild entstehen viele \a
 
 Da ein echter QR-Code typischerweise \textbf{mehrere} positive Patches erzeugt (überlappende Treffer um die gleiche Region), werden alle QR-positiven Patch-Boxen anschließend zu zusammenhängenden Kandidatenregionen zusammengefasst.
 
-Das Merging erfolgt als \textbf{IoU-basiertes Clustering}: Zwei Boxen gehören zur gleichen Gruppe, wenn ihre Intersection-over-Union (IoU) mindestens dem Merging-Schwellwert entspricht. Daraus werden Connected Components gebildet; pro Cluster entsteht eine \textbf{Union-Box} als finaler Kandidat. Als Score des Kandidaten wird der maximale Patch-Score im Cluster verwendet. :contentReference[oaicite:4]{index=4}
+Das Merging erfolgt als \textbf{IoU-basiertes Clustering}: Zwei Boxen gehören zur gleichen Gruppe, wenn ihre Intersection-over-Union (IoU) mindestens dem Merging-Schwellwert entspricht. Daraus werden Connected Components gebildet; pro Cluster entsteht eine \textbf{Union-Box} als finaler Kandidat. Als Score des Kandidaten wird der maximale Patch-Score im Cluster verwendet.
 
 \textbf{Empirische Einstellung (EfficientNet-B0):} Für das Merging hat sich
 \[
@@ -112,7 +112,7 @@ Abbildung~\ref{fig:gui_views} zeigt die fünf GUI-Ansichten anhand desselben Bei
 
 Nach dem Merging liegt pro Kandidat eine Box vor, die \glqq wahrscheinlich\grqq{} einen QR-Code enthält. Für die tatsächliche Nutzbarkeit ist jedoch entscheidend, ob der QR-Code auch \textbf{dekodierbar} ist. In der Praxis zeigte sich, dass einzelne QR-Decoder auf schwierigen Bildern (Reflexion, Nässe, Schaum, Bewegungsunschärfe, Kompressionsartefakte, Teilabdeckung) teils inkonsistent reagieren: Ein Decoder kann in einem Bild erfolgreich sein, während er im nächsten Bild trotz ähnlicher Situation scheitert.
 
-Aus diesem Grund wurde eine \textbf{Multi-Reader-Strategie} implementiert: Mehrere Decoder laufen parallel, und sobald mindestens ein Decoder den QR-Code lesen kann, wird die Region als \textbf{lesbar} markiert (grüner Rahmen). Damit wird die Lesbarkeitsentscheidung deutlich stabiler als mit einem einzelnen Reader. :contentReference[oaicite:5]{index=5}
+Aus diesem Grund wurde eine \textbf{Multi-Reader-Strategie} implementiert: Mehrere Decoder laufen parallel, und sobald mindestens ein Decoder den QR-Code lesen kann, wird die Region als \textbf{lesbar} markiert (grüner Rahmen). Damit wird die Lesbarkeitsentscheidung deutlich stabiler als mit einem einzelnen Reader.
 
 \subsection{Reader-Kaskade und Vorverarbeitungsvarianten}
 \label{subsec:decoder_pipeline}
@@ -131,7 +131,7 @@ Jeder Reader erhält nicht nur das rohe Crop, sondern mehrere einfache Vorverarb
     \item \textbf{upscaled}: Vergrößerung kleiner Crops (Interpolation), falls die Region sehr klein ist,
     \item \textbf{adaptive threshold}: binarisierte Variante, die häufig bei Reflexionen oder ungleichmäßiger Beleuchtung hilft.
 \end{itemize}
-Der Reader versucht die Varianten der Reihe nach; sobald ein gültiger Text extrahiert wurde, gilt dieser Reader als erfolgreich. Die Ergebnisse werden im GUI als Liste angezeigt (Readername, Status, gekürzter Text und verwendete Variante). :contentReference[oaicite:6]{index=6}
+Der Reader versucht die Varianten der Reihe nach; sobald ein gültiger Text extrahiert wurde, gilt dieser Reader als erfolgreich. Die Ergebnisse werden im GUI als Liste angezeigt (Readername, Status, gekürzter Text und verwendete Variante).
 
 \subsection{Kriterium: wann ist ein QR-Code lesbar?}
 \label{subsec:lesbar_kriterium}
@@ -146,3 +146,151 @@ In diesem Fall wird die Kandidatenregion im Bild \textbf{grün} markiert; andern
 \label{subsec:lesbarkeit_fazit}
 
 Die Kombination aus (i) konservativem Patch-Threshold (\texttt{thr=0.95}), (ii) IoU-basiertem Merging (\texttt{merge\_iou=0.30}) und (iii) Multi-Reader-Decoding stellt eine robuste, gut interpretierbare Pipeline dar. Sie verbindet die gelernten CNN-Entscheidungen (QR vs. No-QR auf Patches) mit einer praktischen Nutzbarkeitsprüfung (dekodierbarer QR-Code) und ermöglicht über das GUI schnelle, nachvollziehbare Tests auf beliebigen Bildern.
+
+
+
+
+\section{Empfehlung zur Kamerapositionierung}
+\label{sec:camera_reco}
+
+Dieses Unterkapitel leitet aus der entwickelten Lokalisierungs- und Entzerrungspipeline praktische Empfehlungen für die Kameraposition in der Waschanlage ab. Grundlage ist dabei nicht nur die reine Patch-Klassifikation (Kapitel~\ref{sec:pos_bestimmung}), sondern insbesondere die nachgelagerte \textbf{Geometrie-Schätzung} aus einem detektierten Viereck (QR-Fläche) sowie die daraus erzeugte \textbf{Top-View} (\glqq Warp\grqq{}). Die Pipeline ist im GUI als eigenständiger Schritt implementiert und kombiniert zwei Detektionspfade (Plan A/B) mit einem robusten Fallback-Mechanismus.
+
+\subsection{Pipeline-Überblick (Plan A/B) und Zielgrößen}
+\label{subsec:camera_reco_pipeline_overview}
+
+Abbildung~\ref{fig:rectify_flow} (Flowchart, wird als PDF eingebunden) visualisiert die Stufen der Entzerrung. Kurz zusammengefasst:
+
+\begin{itemize}
+    \item \textbf{Eingabe:} Vollbild $\rightarrow$ Kandidatenbox aus ROI/CNN-Merging (Kapitel~\ref{sec:pos_bestimmung}).
+    \item \textbf{Crop:} Kandidatenbereich wird mit einem kleinen Padding ausgeschnitten.
+    \item \textbf{Plan A:} Direkte Eckpunktdetektion über \texttt{cv2.QRCodeDetector.detect()}.
+    \item \textbf{Plan B:} Binarisierung + Morphologie $\rightarrow$ Kontur/Hull $\rightarrow$ Viereck via \texttt{approxPolyDP} (mit IoU-Scoring).
+    \item \textbf{Warp:} Perspektivische Entzerrung des Vierecks auf eine quadratische Top-View.
+    \item \textbf{Rotationen:} Aus dem Viereck werden drei Rotationswinkel $(\mathrm{rot}_x,\mathrm{rot}_y,\mathrm{rot}_z)$ geschätzt.
+\end{itemize}
+
+Für die Kamerapositionierung sind insbesondere zwei Dinge relevant:
+\begin{itemize}
+    \item \textbf{Stabilität der Viereck-Schätzung:} Je sauberer und konsistenter die 4 Ecken gefunden werden, desto stabiler ist die Top-View (und damit die Lesbarkeit).
+    \item \textbf{Größe und Verzerrung des QR-Codes im Bild:} Sehr starke perspektivische Verzerrung oder ein zu kleiner QR-Code im Bild führen auch nach Entzerrung häufiger zu Decoding-Fehlschlägen.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\linewidth]{Figures/tikz2pdf/pipeline_cameraposition/pipeline_cameraposition.pdf}
+    \caption{Flowchart der Entzerrungs-Pipeline (Plan A/B) von der Kandidatenregion bis zur Top-View und Rotationsschätzung.}
+    \label{fig:rectify_flow}
+\end{figure}
+
+\subsection{Binarisierung und Otsu-Thresholding}
+\label{subsec:camera_reco_otsu}
+
+Ein zentraler Schritt in Plan B ist die Umwandlung des Crops in eine robuste Binärmaske. Standardmäßig wird hierfür im GUI die Otsu-Schwellenwertmethode verwendet (Default-Variante \texttt{otsu}).
+
+\textbf{Intuition:} Otsu wählt den Schwellenwert $t$ so, dass die Pixelintensitäten möglichst gut in zwei Klassen (Vordergrund/Hintergrund) separiert werden. Formal wird ein $t$ gesucht, der die Varianz zwischen den Klassen maximiert (bzw. äquivalent die Varianz innerhalb der Klassen minimiert \cite{otsu1979threshold}. Das ist besonders hilfreich, wenn die Beleuchtung zwar variieren kann, die Intensitätsverteilung aber trotzdem zwei dominante Bereiche aufweist (z.\,B. dunkle QR-Module vs. hellere Hintergrundbereiche).
+
+In unserem Szenario ist Otsu oft ein guter Default, weil der QR-Code (schwarz/weiß) strukturell starke Kontraste liefert und dadurch die Segmentierung im Crop häufig stabiler ist als mit einem festen Threshold. Bei schwierigen Fällen (z.\,B. sehr starke Reflexionen oder Schaum) kann alternativ im GUI auf andere Varianten (Adaptive Threshold, Edges, invertierte Otsu-Maske) gewechselt werden.
+
+\subsection{Morphologische Filter und Debug-Ansicht}
+\label{subsec:camera_reco_morph}
+
+Nach der Binärmaske werden morphologische Operationen eingesetzt:
+\begin{itemize}
+    \item \textbf{Closing} (Dilation $\rightarrow$ Erosion): schließt kleine Lücken und verbindet fragmentierte Kanten (z.\,B. durch Reflexionen oder feine Unterbrechungen in der QR-Struktur).
+    \item \textbf{Opening} (Erosion $\rightarrow$ Dilation): entfernt kleinteiliges Rauschen und isolierte Pixelinseln.
+\end{itemize}
+
+Im GUI sind dafür live Parameter vorgesehen (Kernelgröße $k$ sowie Iterationen für Close/Open). Als robuste Standardeinstellung hat sich gezeigt:
+\[
+k=3,\qquad \texttt{close}=4,\qquad \texttt{open}=0
+\]
+Diese Defaults sind im Script als Initialwerte hinterlegt und können im Debug-View direkt nachvollzogen werden.
+
+Abbildung~\ref{fig:rectify_debug_morph} (Screenshot aus dem GUI) zeigt die \textbf{Morph + Debug} Ansicht: RAW-Binarisierung, Closing/Opening, genutzte Maske sowie zusätzliche Debug-Layer (Objektmaske, Masken-Gradient/Boundary und Quad-Overlay). Diese Visualisierung war entscheidend, um zu verstehen, ob Fehler durch eine schlechte Maske (z.\,B. zu viel Hintergrund) oder durch instabile Viereck-Geometrie entstehen.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\VarPicWidthB]{Figures/png/gui_rectify_morph_debug.png}
+    \caption{GUI-Screenshot der Ansicht \glqq Morph + Debug\grqq{}: Binarisierung (z.\,B. Otsu), morphologische Schritte (Close/Open), Objektmaske und Quad-Overlay zur Diagnose von Plan-B-Fällen.}
+    \label{fig:rectify_debug_morph}
+\end{figure}
+
+\subsection{Robuste Viereck-Schätzung und perspektivische Entzerrung}
+\label{subsec:camera_reco_quad_warp}
+
+Wenn Plan A (OpenCV QR-Detektor) keine stabilen Ecken liefert, nutzt Plan B eine konturbasierte Viereck-Schätzung. Wesentliche Bausteine sind:
+\begin{itemize}
+    \item \textbf{Auto-Heuristik \glqq edge-like vs. filled\grqq{}}: Dünne Kantenmasken werden zunächst zu einer gefüllten Objektmaske verdichtet (Kante $\rightarrow$ Füllen), gefüllte Masken werden direkt als Objektmaske genutzt.
+    \item \textbf{Kontur-Auswahl:} Es wird eine \glqq beste\grqq{} Kontur gewählt (groß genug, nicht randdominant).
+    \item \textbf{Viereck-Suche via \texttt{approxPolyDP}:} Über mehrere Epsilon-Werte wird gezielt nach \textbf{konvexen 4-Ecken-Polygonen} gesucht.
+    \item \textbf{IoU-Scoring:} Kandidatenvierecke werden nicht blind akzeptiert, sondern anhand der IoU zwischen Viereck-Maske und Objektmaske bewertet; das Viereck mit dem besten Score gewinnt.
+    \item \textbf{Robustes Corner-Ordering:} Die vier Ecken werden stabil in der Reihenfolge (TL, TR, BR, BL) sortiert, um \glqq Bow-Ties\grqq{} (Selbstüberschneidungen) und schiefe Warps zu vermeiden.
+\end{itemize}
+Diese Kombination reduziert typische Ausreißer, bei denen zwar eine gute Maske existiert, aber die Eckenreihenfolge oder ein falsches Viereck zu einem unlogischen Warp führt.
+
+Aus dem finalen Viereck wird anschließend per Homographie eine \textbf{quadratische Top-View} erzeugt (Warp auf eine feste Ausgabekantenlänge, z.\,B. 420\,px). Abbildung~\ref{fig:rectify_topview} zeigt einen GUI-Screenshot der \glqq Warp (top view)\grqq{} Ansicht.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\VarPicWidthB]{Figures/png/gui_rectify_topview.png}
+    \caption{GUI-Screenshot der Ansicht \glqq Warp (top view)\grqq{}: perspektivisch entzerrte QR-Region sowie eingeblendete Rotationsschätzung $(\mathrm{rot}_x,\mathrm{rot}_y,\mathrm{rot}_z)$.}
+    \label{fig:rectify_topview}
+\end{figure}
+
+\subsection{Rotationsschätzung um X/Y/Z und Bedeutung für die Kameraposition}
+\label{subsec:camera_reco_rotations}
+
+Aus dem detektierten Viereck werden drei Winkel geschätzt:
+\begin{itemize}
+    \item $\mathrm{rot}_z$: In-Plane-Rotation (Verdrehung in der Bildebene), berechnet als Winkel der oberen Kante (TL$\rightarrow$TR) relativ zur x-Achse.
+    \item $\mathrm{rot}_x$ und $\mathrm{rot}_y$: Tilt-Heuristiken, abgeleitet aus Asymmetrien der Seitenlängen (oben vs. unten, links vs. rechts). Um die Zuordnung stabil zu machen, wird zuvor um $\mathrm{rot}_z$ \glqq entdreht\grqq{}, sodass die obere Kante näherungsweise horizontal liegt.
+\end{itemize}
+Damit erhält man ein konsistenteres \glqq mentales Modell\grqq{}, wie stark der QR-Code als 2D-Fläche im Raum gekippt ist.
+
+Abbildung~\ref{fig:rot_xyz} (drei nebeneinander liegende Illustrationen) soll die schrittweise Rotation um die Achsen X, Y und Z visualisieren.
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\linewidth}
+        \centering
+        \includegraphics[width=\VarPicWidthE]{Figures/png/rotation_step_x_corrected.png}
+        \caption*{(a) Rotation um X}
+    \end{minipage}
+
+    \vspace{0.8em}
+
+    \begin{minipage}{\linewidth}
+        \centering
+        \includegraphics[width=\VarPicWidthE]{Figures/png/rotation_step_y_corrected.png}
+        \caption*{(b) Rotation um Y}
+    \end{minipage}
+
+    \vspace{0.8em}
+
+    \begin{minipage}{\linewidth}
+        \centering
+        \includegraphics[width=\VarPicWidthE]{Figures/png/rotation_step_z_corrected.png}
+        \caption*{(c) Rotation um Z}
+    \end{minipage}
+
+    \caption{Schematische Darstellung der geschätzten Rotationen: $\mathrm{rot}_x$ (Neigung), $\mathrm{rot}_y$ (seitliche Kippung) und $\mathrm{rot}_z$ (Verdrehung in der Bildebene).}
+    \label{fig:rot_xyz}
+\end{figure}
+
+
+\subsection{Konkrete Empfehlung zur Kamerapositionierung}
+\label{subsec:camera_reco_recommendation}
+
+Aus der Pipeline ergeben sich folgende praktische Empfehlungen für die Kamerapositionierung in der Waschanlage:
+
+\begin{enumerate}
+    \item \textbf{Möglichst frontale Sicht auf die QR-Ebene:} Die Kameraposition sollte so gewählt werden, dass $\lvert \mathrm{rot}_x \rvert$ und $\lvert \mathrm{rot}_y \rvert$ im Mittel klein bleiben. Starke Neigung bzw. seitliche Kippung führt zu einer stark verzerrten QR-Struktur (Module werden anisotrop gestaucht), was sowohl die Viereck-Schätzung als auch das Decoding erschwert.
+    \item \textbf{Bevorzugt geringe In-Plane-Verdrehung:} Auch eine große $\lvert \mathrm{rot}_z \rvert$ ist ungünstig, da sie häufig mit ungünstigen Blickwinkeln und stärkeren Reflexionen korreliert. Zwar kann $\mathrm{rot}_z$ durch die Entzerrung kompensiert werden, aber die Robustheit der Eckenfindung profitiert von einer möglichst \glqq sauberen\grqq{} Ausgangsgeometrie.
+    \item \textbf{Ausreichende QR-Größe im Bild:} Der QR-Code sollte im Vollbild genügend Pixel einnehmen, sodass nach Crop und Warp noch eine strukturreiche Top-View entsteht. Praktisch bedeutet das: Kamera nicht zu weit entfernt, ausreichende Auflösung sowie eine Position, die den QR-Code nicht nur am Rand des Bildes erfasst.
+    \item \textbf{Reflexionen minimieren:} Eine Position mit dominanten Himmels-/Gebäudereflexionen auf der Windschutzscheibe erzeugt häufig \glqq edge-like\grqq{} Masken, die mehr Vorverarbeitung benötigen. Ein leicht veränderter Blickwinkel (kleiner seitlicher Offset) kann Spiegelungen reduzieren, ohne die perspektivische Verzerrung stark zu erhöhen.
+    \item \textbf{Stabilität anhand der Top-View beurteilen:} Als pragmatisches Kriterium kann die Qualität der Top-View genutzt werden: Wenn in der Top-View die QR-Module klar konturiert sind und mehrere Reader zuverlässig decodieren, ist die Kameraposition in der Regel ausreichend gut. Das GUI eignet sich hier als schneller Validierungsschritt.
+\end{enumerate}
+
+Zusammenfassend empfiehlt sich eine Kameraposition, die den QR-Code möglichst zentral und frontal aufnimmt, mit ausreichender Auflösung und kontrollierten Reflexionen. Die im GUI eingeblendeten Rotationswerte und die Top-View dienen dabei als unmittelbares Feedback, ob eine Positionierung zu starken Kippwinkeln oder zu instabilen Masken/Quads führt.
+

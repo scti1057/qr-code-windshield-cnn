@@ -819,6 +819,62 @@ def estimate_rot_xy_deg_from_quad(quad: np.ndarray) -> Tuple[float, float]:
     rot_y *= 1.0 if (right > left) else -1.0
     return rot_x, rot_y
 
+def estimate_rot_z_deg_from_quad(quad: np.ndarray) -> float:
+    """
+    In-plane Rotation (um Z): Winkel der oberen Kante TL->TR relativ zur X-Achse.
+    +x nach rechts, +y nach unten (Bildkoordinaten).
+    Wir geben den Winkel in "mathematischer" Konvention aus (CCW, y nach oben),
+    daher verwenden wir -dy.
+    """
+    tl, tr, br, bl = np.asarray(quad, dtype=np.float32).reshape(4, 2)
+    dx = float(tr[0] - tl[0])
+    dy = float(tr[1] - tl[1])
+    ang = math.degrees(math.atan2(-dy, dx))  # -dy => y-up
+    # optional normalisieren auf [-180,180)
+    if ang >= 180.0:
+        ang -= 360.0
+    if ang < -180.0:
+        ang += 360.0
+    return ang
+
+
+def rotate_quad_2d_about_center(quad: np.ndarray, angle_deg: float) -> np.ndarray:
+    """
+    Rotiert Quad in der Bildebene um seinen Schwerpunkt.
+    angle_deg ist in derselben Konvention wie estimate_rot_z_deg_from_quad (y-up).
+    """
+    q = np.asarray(quad, dtype=np.float32).reshape(4, 2)
+    c = q.mean(axis=0)
+
+    a = math.radians(angle_deg)
+    ca, sa = math.cos(a), math.sin(a)
+
+    # Wir rotieren in einem Koordinatensystem mit y-up:
+    # 1) y->y_up, 2) rotieren, 3) zurück zu y-down
+    x = q[:, 0] - c[0]
+    y_up = -(q[:, 1] - c[1])
+
+    xr = ca * x - sa * y_up
+    yr_up = sa * x + ca * y_up
+
+    yr = -yr_up
+    out = np.stack([xr + c[0], yr + c[1]], axis=1).astype(np.float32)
+    return out
+
+
+def estimate_rot_xyz_deg_from_quad(quad: np.ndarray) -> Tuple[float, float, float]:
+    """
+    Liefert (rot_x, rot_y, rot_z) für dein mentales Modell:
+    - rot_z: Verdrehung in der Bildebene (Top-Kante horizontal)
+    - rot_x/rot_y: Tilt-Heuristik, aber berechnet auf dem "entzerrt-um-Z" Quad,
+      damit die Vorzeichen/Zuordnung stabiler zur Bild-X/Y-Achse passt.
+    """
+    rz = estimate_rot_z_deg_from_quad(quad)
+    q0 = rotate_quad_2d_about_center(quad, -rz)   # entdrehen: Top-Kante ~ horizontal
+    rx, ry = estimate_rot_xy_deg_from_quad(q0)    # bestehende Heuristik
+    return rx, ry, rz
+
+
 
 def warp_quad_to_square(img_bgr: np.ndarray, quad_full: np.ndarray, out_size: int = 420) -> np.ndarray:
     S = int(out_size)
@@ -896,6 +952,7 @@ class Candidate:
     quad_full: Optional[np.ndarray]
     rot_x_deg: Optional[float]
     rot_y_deg: Optional[float]
+    rot_z_deg: Optional[float]
     warp_bgr: Optional[np.ndarray]
 
 
@@ -1128,11 +1185,14 @@ class RectifyGUIv4:
                     src = "B"
 
             if quad_full is not None:
-                rot_x, rot_y = estimate_rot_xy_deg_from_quad(quad_full)
+                rot_x, rot_y, rot_z = estimate_rot_xyz_deg_from_quad(quad_full)
                 try:
                     warp = warp_quad_to_square(img, quad_full, out_size=self.warp_size)
                 except Exception:
                     warp = None
+            else:
+                rot_z = None
+
 
             self.candidates.append(
                 Candidate(
@@ -1144,6 +1204,7 @@ class RectifyGUIv4:
                     quad_full=quad_full,
                     rot_x_deg=rot_x,
                     rot_y_deg=rot_y,
+                    rot_z_deg=rot_z,
                     warp_bgr=warp,
                 )
             )
@@ -1242,10 +1303,10 @@ class RectifyGUIv4:
             quad_full[:, 1] += cand.crop_box[1]
             warp = warp_quad_to_square(img, quad_full, out_size=self.warp_size)
 
-            rx, ry = estimate_rot_xy_deg_from_quad(quad_full)
+            rx, ry, rz = estimate_rot_xyz_deg_from_quad(quad_full)
             cv2.putText(warp, f"method=B(v4) var={live_dbg.variant} iou={live_dbg.quad_iou*100:.1f}%", (10, 25),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(warp, f"rot_x={rx:.2f} deg  rot_y={ry:.2f} deg", (10, 55),
+            cv2.putText(warp, f"rot_x={rx:.2f} deg  rot_y={ry:.2f} deg  rot_z={rz:.2f} deg", (10, 55),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
 
             self._show_image(warp)
@@ -1367,8 +1428,9 @@ class RectifyGUIv4:
 
                 if dbg.ok and dbg.quad is not None:
                     quad_full = dbg.quad + np.array([cand.crop_box[0], cand.crop_box[1]], dtype=np.float32)
-                    rx, ry = estimate_rot_xy_deg_from_quad(quad_full)
-                    lines.append(f"  rot_x={rx:.2f} deg  rot_y={ry:.2f} deg")
+                    rx, ry, rz = estimate_rot_xyz_deg_from_quad(quad_full)
+                    lines.append(f"  rot_x={rx:.2f} deg  rot_y={ry:.2f} deg  rot_z={rz:.2f} deg")
+
 
         self.txt.delete("1.0", tk.END)
         self.txt.insert(tk.END, "\n".join(lines))
