@@ -1461,7 +1461,7 @@ def parse_args():
     ap.add_argument("--device", type=str, default="auto", help="auto|cuda|mps|cpu")
 
     ap.add_argument("--run-index", type=int, default=0, help="Which run to use (0=newest).")
-    ap.add_argument("--patch-thr", type=float, default=0.95, help="Patch score threshold.")
+    ap.add_argument("--patch-thr", type=float, default=0.98, help="Patch score threshold.")
     ap.add_argument("--merge-iou", type=float, default=0.30, help="IoU threshold for clustering patches.")
     ap.add_argument("--roi-pad-frac", type=float, default=0.20, help="Padding for merged union box before quad detection.")
 
