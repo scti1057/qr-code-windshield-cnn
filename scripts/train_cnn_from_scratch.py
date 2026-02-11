@@ -29,7 +29,7 @@ python3 scripts/train_cnn_from_scratch.py --config configs/cnn/baseline.yaml
 Correct (base + overrides):
 python3 scripts/train_cnn_from_scratch.py \
   --base configs/cnn/baseline.yaml \
-  --override configs/cnn/exp_lr_3e-4.yaml
+  --override configs/cnn/exp_lr_3e-5.yaml
 """
 
 

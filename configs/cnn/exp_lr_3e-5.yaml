@@ -1,0 +1,4 @@
+train:
+  lr: 0.00003
+logging:
+  run_name: "lr_3e-5"
